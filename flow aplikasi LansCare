@@ -1,0 +1,146 @@
+# Alur Aplikasi LansCare (Flow dari Awal sampai Akhir)
+
+Berikut adalah dokumentasi alur (flow) aplikasi **LansCare** dari awal dijalankan hingga fitur-fitur di dalamnya, baik untuk peran **Lansia** maupun **Kader**, beserta rumus kodingan dan logika yang digunakan.
+
+---
+
+## 1. Diagram Alur Utama (Mermaid)
+
+```mermaid
+graph TD
+    A([Mulai Aplikasi]) --> B[Onboarding Page]
+    B -->|Mulai Sekarang| C[Login Page]
+    
+    C -->|Pilih Peran: Lansia| D[Masuk/Daftar Lansia]
+    C -->|Pilih Peran: Kader| E[Masuk/Daftar Kader]
+    
+    D -->|Autentikasi Sukses| F[Dashboard Lansia]
+    E -->|Autentikasi Sukses| G[Dashboard Kader]
+
+    %% Fitur Dashboard Lansia
+    subgraph Dashboard Lansia
+        F --> F1[Pantau Kesehatan <br> Gula Darah, Tensi, dll]
+        F --> F2[Pengingat Obat]
+        F --> F3[Panggilan Darurat / SOS]
+        F --> F4[Notifikasi & Jadwal Posyandu]
+    end
+
+    %% Fitur Dashboard Kader
+    subgraph Dashboard Kader
+        G --> G1[Kelola Data Lansia]
+        G --> G2[Input Hasil Pemeriksaan]
+        G --> G3[Pencatatan Kehadiran]
+        G --> G4[Kelola Jadwal Kegiatan]
+        G --> G5[Rekap Laporan Bulanan]
+    end
+```
+
+---
+
+## 2. Rincian Alur Navigasi
+
+### A. Tahap Awal (Onboarding & Login)
+1. **Onboarding Page** ([onboarding_page.dart](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/onboarding_page.dart))
+   - Halaman pertama kali yang muncul saat aplikasi dibuka.
+   - Menampilkan 3 slide pengenalan dengan animasi ilustrasi kustom.
+   - Menekan tombol **"Mulai Sekarang"** akan mengarahkan pengguna ke halaman Login.
+
+2. **Login Page** ([login_page.dart](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/login_page.dart))
+   - Toggle antara **Masuk Lansia** dan **Masuk Kader**.
+   - Tombol **"Daftar"** untuk registrasi instan dengan peran (Lansia atau Kader) yang otomatis tersimpan ke lokal.
+
+---
+
+### B. Alur Pengguna: Lansia
+Diarahkan ke **Dashboard Lansia** ([dashboard_page.dart](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/dashboard_page.dart)):
+1. **Pemantauan Kesehatan**: Melihat visualisasi statistik tekanan darah, gula darah, berat badan, dan detak jantung.
+2. **Pengingat Obat** ([pengingat_obat_page.dart](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/pengingat_obat_page.dart)): Menambahkan pengingat minum obat beserta dosis dan frekuensinya.
+3. **Panggilan Darurat / SOS** ([sos_page.dart](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/sos_page.dart)): Menghubungi keluarga/kader instan saat kondisi darurat.
+4. **Notifikasi & Info Posyandu** ([notifikasi_page.dart](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/notifikasi_page.dart)): Menerima jadwal kegiatan dari Kader.
+
+---
+
+### C. Alur Pengguna: Kader
+Diarahkan ke **Dashboard Kader** ([dashboard_kader_page.dart](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/kader/dashboard_kader_page.dart)):
+1. **Kelola Data Lansia** ([data_lansia_page.dart](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/kader/data_lansia_page.dart)): Verifikasi daftar lansia terdaftar.
+2. **Input Hasil Pemeriksaan** ([input_pemeriksaan_page.dart](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/kader/input_pemeriksaan_page.dart)): Mencatat tensi, gula darah, berat badan lansia.
+3. **Pencatatan Kehadiran** ([kehadiran_page.dart](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/kader/kehadiran_page.dart)): Absensi kehadiran kegiatan posyandu.
+4. **Kelola Jadwal Kegiatan** ([manage_jadwal_page.dart](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/kader/manage_jadwal_page.dart)): Membuat dan mempublikasikan jadwal posyandu baru.
+5. **Rekap Laporan Bulanan** ([rekap_laporan_page.dart](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/kader/rekap_laporan_page.dart)): Visualisasi grafik statistik kesehatan bulanan/tahunan.
+
+---
+
+## 3. Rumus Kodingan & Logika Utama yang Digunakan
+
+Berikut adalah rumus algoritma, pola desain, dan logika pemrograman yang diterapkan di dalam kode aplikasi LansCare:
+
+### 1. Klasifikasi Status Kesehatan Lansia (Tensi Darah & Gula Darah)
+Digunakan untuk menentukan apakah kondisi lansia berada dalam batas **Normal**, **Perlu Perhatian**, atau **Rujukan**:
+```dart
+final bpSys = double.tryParse(record.bpSystolic) ?? 120.0;
+final bpDia = double.tryParse(record.bpDiastolic) ?? 80.0;
+final sugar = record.bloodSugar;
+
+if (bpSys >= 140 || bpDia >= 90 || sugar >= 130) {
+  // Rujukan (Kondisi Tinggi/Hipertensi/Diabetes)
+  status = 'Rujukan';
+} else if (bpSys >= 130 || bpDia >= 85 || sugar >= 100) {
+  // Perlu Perhatian (Pra-Hipertensi/Pra-Diabetes)
+  status = 'Perhatian';
+} else {
+  // Kondisi Sehat dan Stabil
+  status = 'Normal';
+}
+```
+
+### 2. Pola Desain Singleton (Singleton Pattern)
+Digunakan pada kelas [DataStore](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/data_store.dart) dan [DatabaseHelper](file:///d:/projek_baru/lanscare_app/lib/posyandu_lansia/database_helper.dart) untuk memastikan hanya ada satu instansi (instance) yang aktif di seluruh aplikasi demi efisiensi memori dan konsistensi data:
+```dart
+class DataStore extends ChangeNotifier {
+  // Konstruktor Privat internal
+  DataStore._internal();
+  
+  // Instance statis tunggal
+  static final DataStore _instance = DataStore._internal();
+  
+  // Pabrik konstruktor untuk mengembalikan instansi yang sama
+  factory DataStore() => _instance;
+}
+```
+
+### 3. Logika Autentikasi Pengguna
+Mencocokkan input email atau Nomor Induk Kependudukan (NIK) serta sandi dengan basis data pengguna lokal:
+```dart
+RegisteredUser? authenticate(String emailOrNik, String password) {
+  for (final u in _users) {
+    if ((u.email.toLowerCase() == emailOrNik.toLowerCase() || u.nik == emailOrNik) 
+        && u.password == password) {
+      return u; // Pengguna ditemukan dan kata sandi cocok
+    }
+  }
+  return null; // Autentikasi gagal
+}
+```
+
+### 4. Penerjemahan Bahasa Daerah (Kearifan Lokal)
+Menyediakan dukungan multi-bahasa (Indonesia, Jawa, Sunda) menggunakan pemetaan bersarang (`nested map`):
+```dart
+String translate(String key) {
+  final translations = {
+    'Indonesia': { 'beranda': 'Beranda', 'kesehatan': 'Kesehatan' },
+    'Jawa': { 'beranda': 'Omah', 'kesehatan': 'Kasarasan' },
+    'Sunda': { 'beranda': 'Bumi', 'kesehatan': 'Kasehatan' }
+  };
+  return translations[appLanguage]?[key] ?? translations['Indonesia']?[key] ?? key;
+}
+```
+
+### 5. Logika SQLite CRUD & Conflict Handling
+Menyimpan data pendaftaran dan kesehatan dengan resolusi konflik `replace` untuk memperbarui data jika entri dengan ID/Email yang sama telah ada:
+```dart
+await db.insert(
+  'users',
+  user.toMap(),
+  conflictAlgorithm: ConflictAlgorithm.replace, // Overwrite jika email sama
+);
+```

@@ -14,92 +14,121 @@ class _ManageJadwalPageState extends State<ManageJadwalPage> {
 
   void _showAddScheduleDialog() {
     final nameCtrl = TextEditingController();
-    final dateCtrl = TextEditingController(text: '15');
-    final monthCtrl = TextEditingController(text: 'Mei');
     final timeCtrl = TextEditingController(text: '08.00 - 11.00 WIB');
     final locationCtrl = TextEditingController();
+    DateTime selectedDate = DateTime.now();
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text(
-            'Tambah Jadwal Posyandu',
-            style: TextStyle(color: Color(0xFF0F5A5C), fontWeight: FontWeight.bold),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Nama Posyandu (contoh: Posyandu Dahlia)'),
-                ),
-                Row(
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            final months = [
+              'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+              'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+            ];
+            final dateStr = '${selectedDate.day} ${months[selectedDate.month - 1]} ${selectedDate.year}';
+            
+            return AlertDialog(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text(
+                'Tambah Jadwal Posyandu',
+                style: TextStyle(color: Color(0xFF0F5A5C), fontWeight: FontWeight.bold),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(
-                      child: TextField(
-                        controller: dateCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(labelText: 'Tanggal'),
-                      ),
+                    TextField(
+                      controller: nameCtrl,
+                      decoration: const InputDecoration(labelText: 'Nama Posyandu (contoh: Posyandu Dahlia)'),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
-                        controller: monthCtrl,
-                        decoration: const InputDecoration(labelText: 'Bulan (contoh: Juni)'),
-                      ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Pilih Tanggal:', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                            const SizedBox(height: 4),
+                            Text(dateStr, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF0F5A5C))),
+                          ],
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.calendar_today, color: Color(0xFF0F5A5C)),
+                          onPressed: () async {
+                            final DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDate,
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime(2100),
+                            );
+                            if (picked != null && picked != selectedDate) {
+                              setStateDialog(() {
+                                selectedDate = picked;
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: timeCtrl,
+                      decoration: const InputDecoration(labelText: 'Waktu (contoh: 08.00 - 11.00 WIB)'),
+                    ),
+                    TextField(
+                      controller: locationCtrl,
+                      decoration: const InputDecoration(labelText: 'Lokasi / Alamat'),
                     ),
                   ],
                 ),
-                TextField(
-                  controller: timeCtrl,
-                  decoration: const InputDecoration(labelText: 'Waktu (contoh: 08.00 - 11.00 WIB)'),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Batal', style: TextStyle(color: Colors.grey)),
                 ),
-                TextField(
-                  controller: locationCtrl,
-                  decoration: const InputDecoration(labelText: 'Lokasi / Alamat'),
+                ElevatedButton(
+                  onPressed: () {
+                    if (nameCtrl.text.trim().isEmpty || locationCtrl.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Mohon isi semua data jadwal (Nama Posyandu dan Lokasi)!'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Add posyandu schedule
+                    _store.addPosyanduSchedule(
+                      nameCtrl.text.trim(),
+                      selectedDate,
+                      timeCtrl.text.trim(),
+                      locationCtrl.text.trim(),
+                    );
+                    
+                    // Send out a notification broadcast alerts to all lansia
+                    _store.addNotification(
+                      'Jadwal Posyandu Baru',
+                      'Kader menambahkan ${nameCtrl.text.trim()} pada tanggal $dateStr.',
+                      'Sekarang',
+                      'Pengingat',
+                    );
+
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Jadwal ${nameCtrl.text.trim()} berhasil dijadwalkan!')),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F5A5C)),
+                  child: const Text('Simpan', style: TextStyle(color: Colors.white)),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (nameCtrl.text.isNotEmpty && locationCtrl.text.isNotEmpty) {
-                  final int day = int.tryParse(dateCtrl.text) ?? 1;
-                  // Add posyandu schedule
-                  _store.addPosyanduSchedule(
-                    nameCtrl.text,
-                    DateTime(2026, 6, day), // Assume default year
-                    timeCtrl.text,
-                    locationCtrl.text,
-                  );
-                  
-                  // Send out a notification broadcast alerts to all lansia
-                  _store.addNotification(
-                    'Jadwal Posyandu Baru',
-                    'Kader menambahkan ${nameCtrl.text} pada tanggal ${dateCtrl.text} ${monthCtrl.text}.',
-                    'Sekarang',
-                    'Pengingat',
-                  );
-
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Jadwal ${nameCtrl.text} berhasil dijadwalkan!')),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F5A5C)),
-              child: const Text('Simpan', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+            );
+          }
         );
       },
     );
@@ -110,7 +139,7 @@ class _ManageJadwalPageState extends State<ManageJadwalPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).cardColor,
+        backgroundColor: AppTheme.getCardColor(context),
         elevation: 0.5,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Color(0xFF0F5A5C)),
@@ -138,36 +167,55 @@ class _ManageJadwalPageState extends State<ManageJadwalPage> {
                         separatorBuilder: (context, index) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final item = list[index];
+                          final months = [
+                            'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
+                            'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'
+                          ];
+                          final monthStr = months[item.date.month - 1];
                           return Container(
                             decoration: BoxDecoration(
-                              color: Theme.of(context).cardColor,
+                              color: AppTheme.getCardColor(context),
                               borderRadius: BorderRadius.circular(12.0),
-                              border: Border.all(color: Colors.grey.shade100),
+                              border: Border.all(color: Colors.grey.shade200),
                             ),
                             padding: const EdgeInsets.all(16.0),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEBF4F5),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        '${item.date.day}',
-                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Color(0xFF0F5A5C)),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      const Text(
-                                        'Bln',
-                                        style: TextStyle(fontSize: 11, color: Color(0xFF0F5A5C), fontWeight: FontWeight.w500),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+                                 Container(
+                                   width: 55,
+                                   padding: const EdgeInsets.symmetric(vertical: 8),
+                                   decoration: BoxDecoration(
+                                     color: AppTheme.getPrimaryColor(context).withOpacity(0.1),
+                                     borderRadius: BorderRadius.circular(12),
+                                     border: Border.all(
+                                       color: AppTheme.getPrimaryColor(context).withOpacity(0.2),
+                                     ),
+                                   ),
+                                   child: Column(
+                                     mainAxisAlignment: MainAxisAlignment.center,
+                                     children: [
+                                       Text(
+                                         '${item.date.day}',
+                                         style: TextStyle(
+                                           fontSize: 20,
+                                           fontWeight: FontWeight.bold,
+                                           color: AppTheme.getPrimaryColor(context),
+                                         ),
+                                       ),
+                                       const SizedBox(height: 2),
+                                       Text(
+                                         monthStr.toUpperCase(),
+                                         style: TextStyle(
+                                           fontSize: 10,
+                                           fontWeight: FontWeight.bold,
+                                           color: AppTheme.getPrimaryColor(context).withOpacity(0.8),
+                                           letterSpacing: 1.1,
+                                         ),
+                                       ),
+                                     ],
+                                   ),
+                                 ),
                                 const SizedBox(width: 14),
                                 Expanded(
                                   child: Column(
@@ -180,20 +228,20 @@ class _ManageJadwalPageState extends State<ManageJadwalPage> {
                                       const SizedBox(height: 4),
                                       Row(
                                         children: [
-                                          const Icon(Icons.access_time, size: 13, color: Colors.grey),
+                                          Icon(Icons.access_time, size: 13, color: AppTheme.getSubtextColor(context)),
                                           const SizedBox(width: 4),
-                                          Text(item.timeRange, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                                          Text(item.timeRange, style: TextStyle(color: AppTheme.getSubtextColor(context), fontSize: 12)),
                                         ],
                                       ),
                                       const SizedBox(height: 4),
                                       Row(
                                         children: [
-                                          const Icon(Icons.location_on_outlined, size: 13, color: Colors.grey),
+                                          Icon(Icons.location_on_outlined, size: 13, color: AppTheme.getSubtextColor(context)),
                                           const SizedBox(width: 4),
                                           Expanded(
                                             child: Text(
                                               item.location,
-                                              style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                              style: TextStyle(color: AppTheme.getSubtextColor(context), fontSize: 12),
                                               maxLines: 1,
                                               overflow: TextOverflow.ellipsis,
                                             ),

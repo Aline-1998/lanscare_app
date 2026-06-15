@@ -30,7 +30,7 @@ class _DataLansiaPageState extends State<DataLansiaPage> {
           title: const Text(
             'Tambah Data Lansia',
             style: TextStyle(
-              color: Color(0xFF0F5A5C),
+              color: Color(0xFF27A1A6),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -49,7 +49,7 @@ class _DataLansiaPageState extends State<DataLansiaPage> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: gender,
+                  initialValue: gender,
                   items: ['Perempuan', 'Laki-laki'].map((String val) {
                     return DropdownMenuItem<String>(
                       value: val,
@@ -88,7 +88,7 @@ class _DataLansiaPageState extends State<DataLansiaPage> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0F5A5C),
+                backgroundColor: const Color(0xFF27A1A6),
               ),
               child: const Text(
                 'Simpan',
@@ -103,21 +103,22 @@ class _DataLansiaPageState extends State<DataLansiaPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = DataStore().isDarkMode;
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Theme.of(context).cardColor,
-        elevation: 0.5,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: widget.isEmbedded
             ? null
             : IconButton(
-                icon: const Icon(Icons.arrow_back, color: Color(0xFF0F5A5C)),
+                icon: const Icon(Icons.arrow_back, color: Color(0xFF27A1A6)),
                 onPressed: () => Navigator.pop(context),
               ),
         title: Container(
           height: 40,
           decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor,
+            color: AppTheme.getCardColor(context),
             borderRadius: BorderRadius.circular(20),
           ),
           child: TextField(
@@ -126,125 +127,141 @@ class _DataLansiaPageState extends State<DataLansiaPage> {
                 _searchQuery = val;
               });
             },
+            style: TextStyle(color: AppTheme.getTextColor(context)),
             decoration: const InputDecoration(
               prefixIcon: Icon(Icons.search, color: Colors.grey),
               hintText: 'Cari nama lansia...',
-              hintStyle: TextStyle(fontSize: 13),
+              hintStyle: TextStyle(fontSize: 13, color: Colors.grey),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(vertical: 8),
             ),
           ),
         ),
       ),
-      body: AnimatedBuilder(
-        animation: _store,
-        builder: (context, child) {
-          final list = _store.lansiaMembers.where((m) {
-            return m.name.toLowerCase().contains(_searchQuery.toLowerCase());
-          }).toList();
+      body: Container(
+        decoration: AppTheme.getBgDecoration(context),
+        height: double.infinity,
+        width: double.infinity,
+        child: AnimatedBuilder(
+          animation: _store,
+          builder: (context, child) {
+            final list = _store.lansiaMembers.where((m) {
+              return m.name.toLowerCase().contains(_searchQuery.toLowerCase());
+            }).toList();
 
-          return Column(
-            children: [
-              Expanded(
-                child: list.isEmpty
-                    ? Center(
-                        child: Text(
-                          'Nama tidak ditemukan',
-                          style: TextStyle(color: Colors.grey[600]),
+            return Column(
+              children: [
+                Expanded(
+                  child: list.isEmpty
+                      ? Center(
+                          child: Text(
+                            'Nama tidak ditemukan',
+                            style: TextStyle(
+                              color: AppTheme.getTextColor(
+                                context,
+                              ).withOpacity(0.6),
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(16.0),
+                          itemCount: list.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final member = list[index];
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: AppTheme.getCardColor(context),
+                                borderRadius: BorderRadius.circular(12.0),
+                                border: Border.all(
+                                  color: Colors.grey.withOpacity(0.3),
+                                ),
+                              ),
+                              padding: const EdgeInsets.all(14.0),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    width: 46,
+                                    height: 46,
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                        0xFFEBF4F5,
+                                      ).withOpacity(isDark ? 0.2 : 1.0),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.person,
+                                      color: Color(0xFF27A1A6),
+                                      size: 26,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          member.name,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                            color: Color(0xFF27A1A6),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '${member.age} Tahun • ${member.gender}',
+                                          style: TextStyle(
+                                            color: AppTheme.getTextColor(
+                                              context,
+                                            ).withOpacity(0.6),
+                                            fontSize: 12,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const Icon(
+                                    Icons.chevron_right,
+                                    color: Colors.grey,
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
                         ),
-                      )
-                    : ListView.separated(
-                        padding: const EdgeInsets.all(16.0),
-                        itemCount: list.length,
-                        separatorBuilder: (context, index) =>
-                            const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final member = list[index];
-                          return Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12.0),
-                              border: Border.all(color: Colors.grey.shade100),
-                            ),
-                            padding: const EdgeInsets.all(14.0),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 46,
-                                  height: 46,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFEBF4F5),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Color(0xFF0F5A5C),
-                                    size: 26,
-                                  ),
-                                ),
-                                const SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        member.name,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                          color: Color(0xFF0F5A5C),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${member.age} Tahun • ${member.gender}',
-                                        style: TextStyle(
-                                          color: Colors.grey[600],
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const Icon(
-                                  Icons.chevron_right,
-                                  color: Colors.grey,
-                                ),
-                              ],
-                            ),
-                          );
-                        },
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: _showAddLansiaDialog,
+                      icon: const Icon(Icons.add, color: Colors.white),
+                      label: const Text(
+                        'Tambah Lansia',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton.icon(
-                    onPressed: _showAddLansiaDialog,
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text(
-                      'Tambah Lansia',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0F5A5C),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8.0),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF27A1A6),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8.0),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     );
   }

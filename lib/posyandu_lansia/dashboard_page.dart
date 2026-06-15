@@ -1,9 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:lanscare_app/posyandu_lansia/kader/dashboard_kader_page.dart';
 
 import 'data_store.dart';
-import 'login_page.dart';
+import 'database_helper.dart';
 import 'notifikasi_page.dart';
 import 'pengingat_obat_page.dart';
+import 'role_selection_page.dart';
 import 'sos_page.dart';
 import 'widgets/custom_chart.dart';
 
@@ -30,11 +35,11 @@ class DashboardPageState extends State<DashboardPage> {
   void initState() {
     super.initState();
     _tabs = [
-      const _BerandaTab(),
-      const _KesehatanTab(),
-      const _JadwalTab(),
-      const _ArtikelTab(),
-      const _AkunTab(),
+      const BerandaTab(),
+      const KesehatanTab(),
+      const JadwalTab(),
+      const ArtikelTab(),
+      const AkunTab(),
     ];
   }
 
@@ -44,50 +49,65 @@ class DashboardPageState extends State<DashboardPage> {
     return AnimatedBuilder(
       animation: store,
       builder: (context, child) {
-        return Scaffold(
-          body: _tabs[_currentTabIndex],
-          bottomNavigationBar: BottomNavigationBar(
-            currentIndex: _currentTabIndex,
-            onTap: (index) {
+        return PopScope(
+          canPop: _currentTabIndex == 0,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
+            if (_currentTabIndex != 0) {
               setState(() {
-                _currentTabIndex = index;
+                _currentTabIndex = 0;
               });
-            },
-            type: BottomNavigationBarType.fixed,
-            selectedItemColor: const Color(0xFF0F5A5C),
-            unselectedItemColor: Colors.grey,
-            selectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 11,
+            }
+          },
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            body: Container(
+              decoration: AppTheme.getBgDecoration(context),
+              child: _tabs[_currentTabIndex],
             ),
-            unselectedLabelStyle: const TextStyle(fontSize: 11),
-            items: [
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.home_outlined),
-                activeIcon: const Icon(Icons.home),
-                label: store.translate('beranda'),
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: _currentTabIndex,
+              onTap: (index) {
+                setState(() {
+                  _currentTabIndex = index;
+                });
+              },
+              type: BottomNavigationBarType.fixed,
+              selectedItemColor: const Color(0xFF27A1A6),
+              unselectedItemColor: Colors.grey,
+              selectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
               ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.favorite_border),
-                activeIcon: const Icon(Icons.favorite),
-                label: store.translate('kesehatan'),
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.calendar_month_outlined),
-                activeIcon: const Icon(Icons.calendar_month),
-                label: store.translate('jadwal'),
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.article_outlined),
-                activeIcon: const Icon(Icons.article),
-                label: store.translate('artikel'),
-              ),
-              BottomNavigationBarItem(
-                icon: const Icon(Icons.person_outline),
-                activeIcon: const Icon(Icons.person),
-                label: store.translate('akun'),
-              ),
-            ],
+              unselectedLabelStyle: const TextStyle(fontSize: 11),
+              items: [
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.home_outlined),
+                  activeIcon: const Icon(Icons.home),
+                  label: store.translate('beranda'),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.favorite_border),
+                  activeIcon: const Icon(Icons.favorite),
+                  label: store.translate('kesehatan'),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.calendar_month_outlined),
+                  activeIcon: const Icon(Icons.calendar_month),
+                  label: store.translate('jadwal'),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.article_outlined),
+                  activeIcon: const Icon(Icons.article),
+                  label: store.translate('artikel'),
+                ),
+                BottomNavigationBarItem(
+                  icon: const Icon(Icons.person_outline),
+                  activeIcon: const Icon(Icons.person),
+                  label: store.translate('akun'),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -98,15 +118,15 @@ class DashboardPageState extends State<DashboardPage> {
 // ----------------------------------------------------
 // TAB 1: BERANDA (HOME)
 // ----------------------------------------------------
-class _BerandaTab extends StatelessWidget {
-  const _BerandaTab();
+class BerandaTab extends StatelessWidget {
+  const BerandaTab({super.key});
 
   @override
   Widget build(BuildContext context) {
     final store = DataStore();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: AnimatedBuilder(
           animation: store,
@@ -124,39 +144,37 @@ class _BerandaTab extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                'Halo, ${store.userName} 👋',
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0F5A5C),
-                                ),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Halo, ${store.userName} 👋',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.getTextColor(context),
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Semoga sehat selalu!',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.grey[600],
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 4),
+                            Text(
+                              'Semoga sehat selalu!',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: AppTheme.getSubtextColor(context),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       // Notification Bell with badge
                       Stack(
                         children: [
                           IconButton(
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.notifications_none_outlined,
                               size: 28,
-                              color: Color(0xFF0F5A5C),
+                              color: AppTheme.getTextColor(context),
                             ),
                             onPressed: () {
                               Navigator.push(
@@ -189,26 +207,28 @@ class _BerandaTab extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // FITUR UTAMA Horizontal shortcut bar
-                  const Text(
+                  Text(
                     'FITUR UTAMA',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 1.1,
-                      color: Colors.grey,
+                      color: store.isDarkMode
+                          ? Colors.white70
+                          : Colors.grey[600],
                     ),
                   ),
                   const SizedBox(height: 12),
-                  SizedBox(
-                    height: 90,
-                    child: ListView(
-                      scrollDirection: Axis.horizontal,
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildFeatureShortcut(
                           context,
                           'Pengingat Obat',
                           Icons.medication_outlined,
-                          const Color(0xFF0F5A5C),
+                          const Color(0xFF27A1A6),
                           () {
                             Navigator.push(
                               context,
@@ -275,19 +295,24 @@ class _BerandaTab extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Jadwal Posyandu Terdekat Card
-                  const Text(
+                  Text(
                     'Jadwal Posyandu Terdekat',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F5A5C),
+                      color: AppTheme.getTextColor(context),
                     ),
                   ),
                   const SizedBox(height: 12),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppTheme.getCardColor(context),
                       borderRadius: BorderRadius.circular(16.0),
+                      border: Border.all(
+                        color: store.isDarkMode
+                            ? Colors.white12
+                            : Colors.grey.shade200,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.02),
@@ -296,91 +321,133 @@ class _BerandaTab extends StatelessWidget {
                         ),
                       ],
                     ),
-                    padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEBF4F5),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.calendar_month,
-                            color: Color(0xFF0F5A5C),
-                            size: 30,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () {
+                          if (store.schedules.isNotEmpty) {
+                            showScheduleDetailDialog(
+                              context,
+                              store.schedules.first,
+                            );
+                          }
+                        },
+                        borderRadius: BorderRadius.circular(16.0),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
                             children: [
-                              Text(
-                                '15 Mei 2024',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Color(0xFF0F5A5C),
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: store.isDarkMode
+                                      ? const Color(0xFF132D3A)
+                                      : const Color(0xFFCCEAEB),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.calendar_month,
+                                  color: store.isDarkMode
+                                      ? const Color(0xFF4DB6AC)
+                                      : const Color(0xFF051B20),
+                                  size: 30,
                                 ),
                               ),
-                              SizedBox(height: 4),
-                              Text(
-                                '08.00 - 11.00 WIB\nPosyandu Melati',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 13,
-                                  height: 1.4,
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      store.schedules.isNotEmpty
+                                          ? '${store.schedules.first.date.day} ${_getMonthName(store.schedules.first.date)} ${store.schedules.first.date.year}'
+                                          : '15 Juni 2026',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: AppTheme.getTextColor(context),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      store.schedules.isNotEmpty
+                                          ? '${store.schedules.first.timeRange}\n${store.schedules.first.name}'
+                                          : '08.00 - 11.00 WIB\nPosyandu Melati',
+                                      style: TextStyle(
+                                        color: AppTheme.getSubtextColor(
+                                          context,
+                                        ),
+                                        fontSize: 13,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.event_available,
+                                  color: Color(0xFF22B573),
+                                  size: 28,
+                                ),
+                                onPressed: () {
+                                  if (store.schedules.isNotEmpty) {
+                                    showScheduleDetailDialog(
+                                      context,
+                                      store.schedules.first,
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Anda terdaftar untuk jadwal ini!',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
                               ),
                             ],
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.event_available,
-                            color: Color(0xFF22B573),
-                            size: 28,
-                          ),
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Anda terdaftar untuk jadwal ini!',
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
 
-                  // Ringkasan Kesehatan Header
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'Ringkasan Kesehatan',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F5A5C),
+                      Expanded(
+                        child: Text(
+                          'Ringkasan Kesehatan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.getTextColor(context),
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      TextButton(
-                        onPressed: () {
-                          // Change tab index to 1 (Kesehatan)
-                          final state = context
-                              .findAncestorStateOfType<DashboardPageState>();
-                          state?.changeTab(1);
-                        },
-                        child: const Text(
-                          'Lihat semua',
-                          style: TextStyle(
-                            color: Color(0xFF0F5A5C),
-                            fontWeight: FontWeight.bold,
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: TextButton(
+                          onPressed: () {
+                            // Change tab index to 1 (Kesehatan)
+                            final state = context
+                                .findAncestorStateOfType<DashboardPageState>();
+                            state?.changeTab(1);
+                          },
+                          child: Text(
+                            'Lihat semua',
+                            style: TextStyle(
+                              color: store.isDarkMode
+                                  ? const Color(0xFF4DB6AC)
+                                  : const Color(0xFF0F5A5C),
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ),
@@ -393,11 +460,12 @@ class _BerandaTab extends StatelessWidget {
                     crossAxisCount: 2,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
-                    childAspectRatio: 1.3,
+                    childAspectRatio: 1.3 / store.fontSizeFactor,
                     crossAxisSpacing: 14,
                     mainAxisSpacing: 14,
                     children: [
                       _buildMetricCard(
+                        context,
                         title: 'Tekanan Darah',
                         value: latest != null ? latest.bpString : '120/80',
                         unit: 'mmHg',
@@ -406,6 +474,7 @@ class _BerandaTab extends StatelessWidget {
                         bgColor: const Color(0xFFFFECEB),
                       ),
                       _buildMetricCard(
+                        context,
                         title: 'Gula Darah',
                         value: latest != null ? '${latest.bloodSugar}' : '90',
                         unit: 'mg/dL',
@@ -414,6 +483,7 @@ class _BerandaTab extends StatelessWidget {
                         bgColor: const Color(0xFFE8F5E9),
                       ),
                       _buildMetricCard(
+                        context,
                         title: 'Berat Badan',
                         value: latest != null ? '${latest.weight}' : '55',
                         unit: 'kg',
@@ -422,6 +492,7 @@ class _BerandaTab extends StatelessWidget {
                         bgColor: const Color(0xFFE3F2FD),
                       ),
                       _buildMetricCard(
+                        context,
                         title: 'Denyut Nadi',
                         value: latest != null ? '${latest.heartRate}' : '72',
                         unit: 'bpm',
@@ -434,19 +505,26 @@ class _BerandaTab extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Tips Hari Ini Card
-                  const Text(
+                  Text(
                     'Tips Hari Ini',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F5A5C),
+                      color: store.isDarkMode
+                          ? Colors.white
+                          : const Color(0xFF27A1A6),
                     ),
                   ),
                   const SizedBox(height: 12),
                   Container(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppTheme.getCardColor(context),
                       borderRadius: BorderRadius.circular(16.0),
+                      border: Border.all(
+                        color: store.isDarkMode
+                            ? Colors.white12
+                            : Colors.grey.shade300,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(0.02),
@@ -462,10 +540,12 @@ class _BerandaTab extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
+                              Text(
                                 'Minum air putih yang cukup agar tubuh tetap terhidrasi.',
                                 style: TextStyle(
-                                  color: Colors.black87,
+                                  color: store.isDarkMode
+                                      ? Colors.white
+                                      : Colors.black87,
                                   fontSize: 14,
                                   height: 1.4,
                                   fontWeight: FontWeight.w500,
@@ -475,7 +555,9 @@ class _BerandaTab extends StatelessWidget {
                               Text(
                                 'Tips Hidrasi Lansia',
                                 style: TextStyle(
-                                  color: Colors.grey[500],
+                                  color: store.isDarkMode
+                                      ? Colors.white60
+                                      : Colors.grey[500],
                                   fontSize: 11,
                                 ),
                               ),
@@ -488,7 +570,7 @@ class _BerandaTab extends StatelessWidget {
                           width: 50,
                           height: 50,
                           decoration: const BoxDecoration(
-                            color: Color(0xFFE3F2FD),
+                            color: Colors.transparent,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -517,6 +599,7 @@ class _BerandaTab extends StatelessWidget {
     Color color,
     VoidCallback onTap,
   ) {
+    final store = DataStore();
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -526,17 +609,9 @@ class _BerandaTab extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.white,
+              decoration: const BoxDecoration(
+                color: Colors.transparent,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.grey.shade100),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.01),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
               ),
               child: Icon(icon, color: color, size: 26),
             ),
@@ -548,7 +623,7 @@ class _BerandaTab extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey[800],
+                color: store.isDarkMode ? Colors.white70 : Colors.grey[800],
               ),
             ),
           ],
@@ -557,7 +632,8 @@ class _BerandaTab extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricCard({
+  Widget _buildMetricCard(
+    BuildContext context, {
     required String title,
     required String value,
     required String unit,
@@ -565,11 +641,15 @@ class _BerandaTab extends StatelessWidget {
     required Color iconColor,
     required Color bgColor,
   }) {
+    final store = DataStore();
+    final isDark = store.isDarkMode;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(16.0),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.grey.shade200,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.01),
@@ -586,18 +666,23 @@ class _BerandaTab extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: TextStyle(
-                  color: Colors.grey[500],
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    color: AppTheme.getSubtextColor(context),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+              const SizedBox(width: 4),
               Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: bgColor,
+                  color: isDark ? bgColor.withOpacity(0.2) : bgColor,
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: iconColor, size: 14),
@@ -607,18 +692,29 @@ class _BerandaTab extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF0F5A5C),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.getTextColor(context),
+                  ),
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
-                unit,
-                style: TextStyle(color: Colors.grey[600], fontSize: 11),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  unit,
+                  style: TextStyle(
+                    color: AppTheme.getSubtextColor(context),
+                    fontSize: 11,
+                  ),
+                ),
               ),
             ],
           ),
@@ -626,21 +722,48 @@ class _BerandaTab extends StatelessWidget {
       ),
     );
   }
+
+  String _getMonthName(DateTime dt) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+    return months[dt.month - 1];
+  }
 }
 
 // ----------------------------------------------------
 // TAB 2: KESEHATAN (HEALTH TRACKER & GRAPH)
 // ----------------------------------------------------
-class _KesehatanTab extends StatefulWidget {
-  const _KesehatanTab();
+class KesehatanTab extends StatefulWidget {
+  const KesehatanTab({super.key});
 
   @override
-  State<_KesehatanTab> createState() => _KesehatanTabState();
+  State<KesehatanTab> createState() => KesehatanTabState();
 }
 
-class _KesehatanTabState extends State<_KesehatanTab> {
+class KesehatanTabState extends State<KesehatanTab> {
   String _activeMetric = 'Tekanan Darah';
   final DataStore _store = DataStore();
+  LansiaMember? _selectedKaderLansia;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_store.currentUserRole == 'Kader' && _store.lansiaMembers.isNotEmpty) {
+      _selectedKaderLansia = _store.lansiaMembers.first;
+    }
+  }
 
   void _showAddRecordDialog() {
     final bpSysCtrl = TextEditingController(text: '120');
@@ -659,7 +782,7 @@ class _KesehatanTabState extends State<_KesehatanTab> {
           title: const Text(
             'Catat Kesehatan Baru',
             style: TextStyle(
-              color: Color(0xFF0F5A5C),
+              color: Color(0xFF27A1A6),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -728,16 +851,25 @@ class _KesehatanTabState extends State<_KesehatanTab> {
                 final int? ht = int.tryParse(heartCtrl.text);
 
                 if (wt != null && sg != null && ht != null) {
-                  _store.addHealthRecord(
-                    HealthRecord(
-                      date: DateTime.now(),
-                      bpSystolic: bpSysCtrl.text,
-                      bpDiastolic: bpDiaCtrl.text,
-                      bloodSugar: sg,
-                      weight: wt,
-                      heartRate: ht,
-                    ),
+                  final newRecord = HealthRecord(
+                    date: DateTime.now(),
+                    bpSystolic: bpSysCtrl.text,
+                    bpDiastolic: bpDiaCtrl.text,
+                    bloodSugar: sg,
+                    weight: wt,
+                    heartRate: ht,
                   );
+
+                  if (_store.currentUserRole == 'Kader') {
+                    if (_selectedKaderLansia != null) {
+                      _store.addKaderRecord(
+                        _selectedKaderLansia!.id,
+                        newRecord,
+                      );
+                    }
+                  } else {
+                    _store.addHealthRecord(newRecord);
+                  }
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -747,7 +879,7 @@ class _KesehatanTabState extends State<_KesehatanTab> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0F5A5C),
+                backgroundColor: const Color(0xFF27A1A6),
               ),
               child: const Text(
                 'Simpan',
@@ -763,45 +895,136 @@ class _KesehatanTabState extends State<_KesehatanTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Theme.of(context).cardColor,
         elevation: 0.5,
-        title: const Text(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: _store.isDarkMode ? Colors.white : const Color(0xFF27A1A6),
+          ),
+          onPressed: () {
+            final dashState = context
+                .findAncestorStateOfType<DashboardPageState>();
+            if (dashState != null) {
+              dashState.changeTab(0);
+              return;
+            }
+            final kaderState = context
+                .findAncestorStateOfType<DashboardKaderPageState>();
+            if (kaderState != null) {
+              kaderState.changeTab(0);
+              return;
+            }
+            Navigator.pop(context);
+          },
+        ),
+        title: Text(
           'Riwayat Kesehatan',
           style: TextStyle(
-            color: Color(0xFF0F5A5C),
+            color: _store.isDarkMode ? Colors.white : const Color(0xFF27A1A6),
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add, color: Color(0xFF0F5A5C)),
-            onPressed: _showAddRecordDialog,
-          ),
-        ],
+        actions: const [],
       ),
       body: AnimatedBuilder(
         animation: _store,
         builder: (context, child) {
-          final records = _store.healthRecords;
+          final List<HealthRecord> records;
+          if (_store.currentUserRole == 'Kader') {
+            if (_selectedKaderLansia == null &&
+                _store.lansiaMembers.isNotEmpty) {
+              _selectedKaderLansia = _store.lansiaMembers.first;
+            }
+            records = _selectedKaderLansia?.records ?? [];
+          } else {
+            records = _store.healthRecords;
+          }
           return Column(
             children: [
+              if (_store.currentUserRole == 'Kader')
+                Container(
+                  color: AppTheme.getCardColor(context),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 12.0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Pilih Anggota Lansia:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: AppTheme.getSubtextColor(context),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: _store.isDarkMode
+                              ? Colors.white10
+                              : Colors.grey[100],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<LansiaMember>(
+                            value: _selectedKaderLansia,
+                            isExpanded: true,
+                            icon: const Icon(
+                              Icons.arrow_drop_down,
+                              color: Color(0xFF27A1A6),
+                            ),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.getTextColor(context),
+                            ),
+                            items: _store.lansiaMembers.map((LansiaMember val) {
+                              return DropdownMenuItem<LansiaMember>(
+                                value: val,
+                                child: Text(
+                                  '${val.name} (${val.age} Thn • ${val.gender})',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppTheme.getTextColor(context),
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (LansiaMember? newValue) {
+                              setState(() {
+                                _selectedKaderLansia = newValue;
+                              });
+                            },
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               // Selector Tabs
               Container(
-                color: Colors.white,
+                color: AppTheme.getCardColor(context),
                 padding: const EdgeInsets.symmetric(
                   vertical: 12.0,
                   horizontal: 16.0,
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildMetricButton('Tekanan Darah'),
-                    _buildMetricButton('Gula Darah'),
-                    _buildMetricButton('Berat Badan'),
-                  ],
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _buildMetricButton('Tekanan Darah'),
+                      const SizedBox(width: 8),
+                      _buildMetricButton('Gula Darah'),
+                      const SizedBox(width: 8),
+                      _buildMetricButton('Berat Badan'),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -811,7 +1034,7 @@ class _KesehatanTabState extends State<_KesehatanTab> {
                 margin: const EdgeInsets.symmetric(horizontal: 16.0),
                 padding: const EdgeInsets.all(12.0),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AppTheme.getCardColor(context),
                   borderRadius: BorderRadius.circular(16.0),
                   boxShadow: [
                     BoxShadow(
@@ -825,9 +1048,9 @@ class _KesehatanTabState extends State<_KesehatanTab> {
                   children: [
                     Text(
                       _activeMetric,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F5A5C),
+                        color: AppTheme.getTextColor(context),
                         fontSize: 14,
                       ),
                     ),
@@ -844,12 +1067,12 @@ class _KesehatanTabState extends State<_KesehatanTab> {
               // Vitals List
               Expanded(
                 child: Container(
-                  color: Colors.white,
+                  color: AppTheme.getCardColor(context),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.only(
+                      Padding(
+                        padding: const EdgeInsets.only(
                           left: 16.0,
                           top: 16.0,
                           bottom: 8.0,
@@ -859,7 +1082,7 @@ class _KesehatanTabState extends State<_KesehatanTab> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
-                            color: Color(0xFF0F5A5C),
+                            color: AppTheme.getTextColor(context),
                           ),
                         ),
                       ),
@@ -892,9 +1115,12 @@ class _KesehatanTabState extends State<_KesehatanTab> {
                               contentPadding: EdgeInsets.zero,
                               title: Text(
                                 _formatDate(rec.date),
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 14,
+                                  color: _store.isDarkMode
+                                      ? Colors.white
+                                      : Colors.black87,
                                 ),
                               ),
                               trailing: Row(
@@ -902,10 +1128,12 @@ class _KesehatanTabState extends State<_KesehatanTab> {
                                 children: [
                                   Text(
                                     displayVal,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
-                                      color: Color(0xFF0F5A5C),
+                                      color: _store.isDarkMode
+                                          ? const Color(0xFF4DD6DD)
+                                          : const Color(0xFF27A1A6),
                                     ),
                                   ),
                                   const SizedBox(width: 4),
@@ -950,13 +1178,21 @@ class _KesehatanTabState extends State<_KesehatanTab> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF0F5A5C) : const Color(0xFFF5F8F8),
+          color: isActive
+              ? const Color(0xFF27A1A6)
+              : (_store.isDarkMode
+                    ? Colors.grey.shade900
+                    : const Color(0xFFF5F8F8)),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isActive ? Colors.white : const Color(0xFF0F5A5C),
+            color: isActive
+                ? Colors.white
+                : (_store.isDarkMode
+                      ? Colors.white70
+                      : const Color(0xFF0F5A5C)),
             fontWeight: FontWeight.bold,
             fontSize: 12,
           ),
@@ -987,22 +1223,195 @@ class _KesehatanTabState extends State<_KesehatanTab> {
 // ----------------------------------------------------
 // TAB 3: JADWAL (POSYANDU CALENDAR)
 // ----------------------------------------------------
-class _JadwalTab extends StatelessWidget {
-  const _JadwalTab();
+class JadwalTab extends StatefulWidget {
+  const JadwalTab({super.key});
+
+  @override
+  State<JadwalTab> createState() => _JadwalTabState();
+}
+
+class _JadwalTabState extends State<JadwalTab> {
+  DateTime _focusedDate = DateTime.now();
+  DateTime? _selectedDate;
+
+  String _getMonthFullName(DateTime dt) {
+    final months = [
+      'Januari',
+      'Februari',
+      'Maret',
+      'April',
+      'Mei',
+      'Juni',
+      'Juli',
+      'Agustus',
+      'September',
+      'Oktober',
+      'November',
+      'Desember',
+    ];
+    return months[dt.month - 1];
+  }
+
+  String _getMonthName(DateTime dt) {
+    final months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'Mei',
+      'Jun',
+      'Jul',
+      'Agu',
+      'Sep',
+      'Okt',
+      'Nov',
+      'Des',
+    ];
+    return months[dt.month - 1];
+  }
+
+  void _showScheduleDetailDialog(BuildContext context, PosyanduSchedule item) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            item.name,
+            style: const TextStyle(
+              color: Color(0xFF27A1A6),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today,
+                    color: Color(0xFF27A1A6),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    '${item.date.day} ${_getMonthFullName(item.date)} ${item.date.year}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.access_time,
+                    color: Color(0xFF27A1A6),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Text(
+                    item.timeRange,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppTheme.getSubtextColor(context),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(
+                    Icons.location_on_outlined,
+                    color: Color(0xFF27A1A6),
+                    size: 18,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      item.location,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.getSubtextColor(context),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Tutup', style: TextStyle(color: Colors.grey)),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Anda terdaftar untuk menghadiri ${item.name}!',
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF27A1A6),
+              ),
+              child: const Text('Hadir', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final store = DataStore();
+    final startOfWeek = _focusedDate.subtract(
+      Duration(days: _focusedDate.weekday % 7),
+    );
+    final days = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Theme.of(context).cardColor,
         elevation: 0.5,
-        title: const Text(
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: store.isDarkMode ? Colors.white : const Color(0xFF27A1A6),
+          ),
+          onPressed: () {
+            final dashState = context
+                .findAncestorStateOfType<DashboardPageState>();
+            if (dashState != null) {
+              dashState.changeTab(0);
+              return;
+            }
+            final kaderState = context
+                .findAncestorStateOfType<DashboardKaderPageState>();
+            if (kaderState != null) {
+              kaderState.changeTab(0);
+              return;
+            }
+            Navigator.pop(context);
+          },
+        ),
+        title: Text(
           'Jadwal Posyandu',
           style: TextStyle(
-            color: Color(0xFF0F5A5C),
+            color: store.isDarkMode ? Colors.white : const Color(0xFF27A1A6),
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -1011,42 +1420,103 @@ class _JadwalTab extends StatelessWidget {
       body: AnimatedBuilder(
         animation: store,
         builder: (context, child) {
-          final list = store.schedules;
+          final allSchedules = store.schedules;
+          final list = _selectedDate == null
+              ? allSchedules
+              : allSchedules.where((item) {
+                  return item.date.day == _selectedDate!.day &&
+                      item.date.month == _selectedDate!.month &&
+                      item.date.year == _selectedDate!.year;
+                }).toList();
+
           return Column(
             children: [
               // Calendar strip
               Container(
-                color: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                color: AppTheme.getCardColor(context),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8.0,
+                  horizontal: 16.0,
+                ),
                 child: Column(
                   children: [
-                    const Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Icon(Icons.arrow_left, color: Color(0xFF0F5A5C)),
+                        IconButton(
+                          icon: Icon(
+                            Icons.chevron_left,
+                            color: store.isDarkMode
+                                ? Colors.white
+                                : const Color(0xFF27A1A6),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _focusedDate = _focusedDate.subtract(
+                                const Duration(days: 7),
+                              );
+                            });
+                          },
+                        ),
                         Text(
-                          'Mei 2024',
+                          '${_getMonthFullName(_focusedDate)} ${_focusedDate.year}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
-                            color: Color(0xFF0F5A5C),
+                            color: store.isDarkMode
+                                ? Colors.white
+                                : const Color(0xFF27A1A6),
                           ),
                         ),
-                        Icon(Icons.arrow_right, color: Color(0xFF0F5A5C)),
+                        IconButton(
+                          icon: Icon(
+                            Icons.chevron_right,
+                            color: store.isDarkMode
+                                ? Colors.white
+                                : const Color(0xFF27A1A6),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _focusedDate = _focusedDate.add(
+                                const Duration(days: 7),
+                              );
+                            });
+                          },
+                        ),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        _buildDayIndicator('Min', '12', false),
-                        _buildDayIndicator('Sen', '13', false),
-                        _buildDayIndicator('Sel', '14', false),
-                        _buildDayIndicator('Rab', '15', true),
-                        _buildDayIndicator('Kam', '16', false),
-                        _buildDayIndicator('Jum', '17', false),
-                        _buildDayIndicator('Sab', '18', false),
-                      ],
+                      children: List.generate(7, (index) {
+                        final date = startOfWeek.add(Duration(days: index));
+                        final isSelected =
+                            _selectedDate != null &&
+                            date.day == _selectedDate!.day &&
+                            date.month == _selectedDate!.month &&
+                            date.year == _selectedDate!.year;
+                        final isToday =
+                            date.day == DateTime.now().day &&
+                            date.month == DateTime.now().month &&
+                            date.year == DateTime.now().year;
+
+                        return GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              if (isSelected) {
+                                _selectedDate = null;
+                              } else {
+                                _selectedDate = date;
+                              }
+                            });
+                          },
+                          child: _buildDayIndicator(
+                            days[index],
+                            '${date.day}',
+                            isSelected,
+                          ),
+                        );
+                      }),
                     ),
                   ],
                 ),
@@ -1055,140 +1525,189 @@ class _JadwalTab extends StatelessWidget {
 
               // Schedule list
               Expanded(
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(16.0),
-                  itemCount: list.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final item = list[index];
-                    return Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12.0),
-                        border: Border.all(color: Colors.grey.shade100),
-                      ),
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 14,
+                child: list.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _selectedDate == null
+                                  ? 'Belum ada jadwal posyandu'
+                                  : 'Belum ada jadwal pada tanggal ini',
+                              style: TextStyle(color: Colors.grey[600]),
                             ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFEBF4F5),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Column(
-                              children: [
-                                Text(
-                                  '${item.date.day}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                    color: Color(0xFF0F5A5C),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                const Text(
-                                  'Mei',
+                            if (_selectedDate != null) ...[
+                              const SizedBox(height: 12),
+                              TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedDate = null;
+                                  });
+                                },
+                                child: const Text(
+                                  'Tampilkan Semua Jadwal',
                                   style: TextStyle(
-                                    fontSize: 11,
-                                    color: Color(0xFF0F5A5C),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.name,
-                                  style: const TextStyle(
+                                    color: Color(0xFF27A1A6),
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: Color(0xFF0F5A5C),
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.access_time,
-                                      size: 13,
-                                      color: Colors.grey,
+                              ),
+                            ],
+                          ],
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(16.0),
+                        itemCount: list.length,
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final item = list[index];
+                          return InkWell(
+                            onTap: () =>
+                                _showScheduleDetailDialog(context, item),
+                            borderRadius: BorderRadius.circular(12.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: AppTheme.getCardColor(context),
+                                borderRadius: BorderRadius.circular(12.0),
+                                border: Border.all(
+                                  color: store.isDarkMode
+                                      ? Colors.grey.shade800
+                                      : Colors.grey.shade100,
+                                ),
+                              ),
+                              padding: const EdgeInsets.all(16.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    width: 55,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
                                     ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      item.timeRange,
-                                      style: const TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 12,
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.getPrimaryColor(
+                                        context,
+                                      ).withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: AppTheme.getPrimaryColor(
+                                          context,
+                                        ).withOpacity(0.2),
                                       ),
                                     ),
-                                  ],
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.location_on_outlined,
-                                      size: 13,
-                                      color: Colors.grey,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        item.location,
-                                        style: const TextStyle(
-                                          color: Colors.grey,
-                                          fontSize: 12,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '${item.date.day}',
+                                          style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.getPrimaryColor(
+                                              context,
+                                            ),
+                                          ),
                                         ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          _getMonthName(
+                                            item.date,
+                                          ).toUpperCase(),
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.bold,
+                                            color: AppTheme.getPrimaryColor(
+                                              context,
+                                            ).withOpacity(0.8),
+                                            letterSpacing: 1.1,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                  const SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.name,
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15,
+                                            color: store.isDarkMode
+                                                ? Colors.white
+                                                : const Color(0xFF051B20),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.access_time,
+                                              size: 13,
+                                              color: AppTheme.getSubtextColor(
+                                                context,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              item.timeRange,
+                                              style: TextStyle(
+                                                color: AppTheme.getSubtextColor(
+                                                  context,
+                                                ),
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.location_on_outlined,
+                                              size: 13,
+                                              color: AppTheme.getSubtextColor(
+                                                context,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                item.location,
+                                                style: TextStyle(
+                                                  color:
+                                                      AppTheme.getSubtextColor(
+                                                        context,
+                                                      ),
+                                                  fontSize: 12,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  Icon(
+                                    Icons.chevron_right,
+                                    color: store.isDarkMode
+                                        ? Colors.grey
+                                        : Colors.grey.shade700,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const Icon(Icons.chevron_right, color: Colors.grey),
-                        ],
+                          );
+                        },
                       ),
-                    );
-                  },
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 44,
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFF0F5A5C)),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text(
-                      'Lihat Semua Jadwal',
-                      style: TextStyle(
-                        color: Color(0xFF0F5A5C),
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
               ),
             ],
           );
@@ -1201,7 +1720,7 @@ class _JadwalTab extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: isActive ? const Color(0xFF0F5A5C) : Colors.transparent,
+        color: isActive ? const Color(0xFF27A1A6) : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Column(
@@ -1210,7 +1729,11 @@ class _JadwalTab extends StatelessWidget {
             name,
             style: TextStyle(
               fontSize: 11,
-              color: isActive ? Colors.white : Colors.grey,
+              color: isActive
+                  ? Colors.white
+                  : (DataStore().isDarkMode
+                        ? Colors.white60
+                        : Colors.grey.shade800),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -1220,7 +1743,11 @@ class _JadwalTab extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
-              color: isActive ? Colors.white : const Color(0xFF0F5A5C),
+              color: isActive
+                  ? Colors.white
+                  : (DataStore().isDarkMode
+                        ? Colors.white70
+                        : const Color(0xFF051B20)),
             ),
           ),
         ],
@@ -1232,14 +1759,14 @@ class _JadwalTab extends StatelessWidget {
 // ----------------------------------------------------
 // TAB 4: ARTIKEL (HEALTH KNOWLEDGE)
 // ----------------------------------------------------
-class _ArtikelTab extends StatefulWidget {
-  const _ArtikelTab();
+class ArtikelTab extends StatefulWidget {
+  const ArtikelTab({super.key});
 
   @override
-  State<_ArtikelTab> createState() => _ArtikelTabState();
+  State<ArtikelTab> createState() => ArtikelTabState();
 }
 
-class _ArtikelTabState extends State<_ArtikelTab> {
+class ArtikelTabState extends State<ArtikelTab> {
   String _activeCategory = 'Semua';
   String _searchQuery = '';
   final DataStore _store = DataStore();
@@ -1264,10 +1791,33 @@ class _ArtikelTabState extends State<_ArtikelTab> {
     final filtered = _getFilteredArticles();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Theme.of(context).cardColor,
         elevation: 0.5,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: DataStore().isDarkMode
+                ? Colors.white
+                : const Color(0xFF27A1A6),
+          ),
+          onPressed: () {
+            final dashState = context
+                .findAncestorStateOfType<DashboardPageState>();
+            if (dashState != null) {
+              dashState.changeTab(0);
+              return;
+            }
+            final kaderState = context
+                .findAncestorStateOfType<DashboardKaderPageState>();
+            if (kaderState != null) {
+              kaderState.changeTab(0);
+              return;
+            }
+            Navigator.pop(context);
+          },
+        ),
         title: Container(
           height: 40,
           decoration: BoxDecoration(
@@ -1294,7 +1844,7 @@ class _ArtikelTabState extends State<_ArtikelTab> {
         children: [
           // Horizontal category bar
           Container(
-            color: Colors.white,
+            color: AppTheme.getCardColor(context),
             padding: const EdgeInsets.symmetric(
               vertical: 12.0,
               horizontal: 16.0,
@@ -1348,9 +1898,13 @@ class _ArtikelTabState extends State<_ArtikelTab> {
                         },
                         child: Container(
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AppTheme.getCardColor(context),
                             borderRadius: BorderRadius.circular(12.0),
-                            border: Border.all(color: Colors.grey.shade100),
+                            border: Border.all(
+                              color: _store.isDarkMode
+                                  ? Colors.grey.shade800
+                                  : Colors.grey.shade100,
+                            ),
                           ),
                           padding: const EdgeInsets.all(14.0),
                           child: Row(
@@ -1376,10 +1930,12 @@ class _ArtikelTabState extends State<_ArtikelTab> {
                                   children: [
                                     Text(
                                       art.title,
-                                      style: const TextStyle(
+                                      style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 14,
-                                        color: Color(0xFF0F5A5C),
+                                        color: _store.isDarkMode
+                                            ? Colors.white
+                                            : const Color(0xFF27A1A6),
                                       ),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
@@ -1411,12 +1967,12 @@ class _ArtikelTabState extends State<_ArtikelTab> {
           //     child: OutlinedButton(
           //       onPressed: () {},
           //       style: OutlinedButton.styleFrom(
-          //         side: const BorderSide(color: Color(0xFF0F5A5C)),
+          //         side: const BorderSide(color: Color(0xFF27A1A6)),
           //         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           //       ),
           //       child: const Text(
           //         'Lihat Semua Artikel',
-          //         style: TextStyle(color: Color(0xFF0F5A5C), fontWeight: FontWeight.bold),
+          //         style: TextStyle(color: Color(0xFF27A1A6), fontWeight: FontWeight.bold),
           //       ),
           //     ),
           //   ),
@@ -1462,7 +2018,7 @@ class _ArtikelTabState extends State<_ArtikelTab> {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF0F5A5C).withOpacity(0.1),
+                      color: const Color(0xFF0F5A5C).withOpacity(0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
@@ -1477,10 +2033,10 @@ class _ArtikelTabState extends State<_ArtikelTab> {
                   const SizedBox(height: 12),
                   Text(
                     art.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F5A5C),
+                      color: AppTheme.getTextColor(context),
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -1491,21 +2047,13 @@ class _ArtikelTabState extends State<_ArtikelTab> {
                   const Divider(height: 30),
                   Text(
                     art.contentSummary,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       height: 1.6,
-                      color: Colors.black87,
+                      color: AppTheme.getTextColor(context),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.',
-                    style: TextStyle(
-                      fontSize: 15,
-                      height: 1.6,
-                      color: Colors.black54,
-                    ),
-                  ),
                 ],
               ),
             );
@@ -1526,13 +2074,21 @@ class _ArtikelTabState extends State<_ArtikelTab> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
         decoration: BoxDecoration(
-          color: isActive ? const Color(0xFF0F5A5C) : const Color(0xFFF5F8F8),
+          color: isActive
+              ? const Color(0xFF27A1A6)
+              : (_store.isDarkMode
+                    ? Colors.grey.shade900
+                    : const Color(0xFFF5F8F8)),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isActive ? Colors.white : const Color(0xFF0F5A5C),
+            color: isActive
+                ? Colors.white
+                : (_store.isDarkMode
+                      ? Colors.white70
+                      : const Color(0xFF0F5A5C)),
             fontWeight: FontWeight.bold,
             fontSize: 12,
           ),
@@ -1548,47 +2104,124 @@ class _ArtikelTabState extends State<_ArtikelTab> {
 // ----------------------------------------------------
 // TAB 5: AKUN (PROFILE & SETTINGS)
 // ----------------------------------------------------
-class _AkunTab extends StatelessWidget {
-  const _AkunTab();
+class AkunTab extends StatelessWidget {
+  const AkunTab({super.key});
+
+  Widget _buildFallbackInitials(String name, double size) {
+    Color avatarColor = const Color(0xFF27A1A6);
+    if (name == 'eren') {
+      avatarColor = const Color(0xFF2E4F4F); // Green
+    } else if (name == 'mikasa') {
+      avatarColor = const Color(0xFF8C3333); // Red
+    } else if (name == 'armin') {
+      avatarColor = const Color(0xFFE4A11B); // Yellow
+    } else if (name == 'levi') {
+      avatarColor = const Color(0xFF2C3E50); // Charcoal
+    } else if (name == 'erwin') {
+      avatarColor = const Color(0xFF7F8C8D); // Silver
+    } else if (name == 'sasha') {
+      avatarColor = const Color(0xFFD35400); // Potato Orange
+    }
+    String displayName = name[0].toUpperCase() + name.substring(1);
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: avatarColor,
+        border: Border.all(color: const Color(0xFF27A1A6), width: 2),
+      ),
+      child: Center(
+        child: Text(
+          displayName
+              .substring(0, displayName.length > 2 ? 3 : displayName.length)
+              .toUpperCase(),
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: size * 0.22,
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildAvatar(String imagePath, double size) {
     Color bgColor = const Color(0xFFEBF4F5);
     Widget icon = Icon(
       Icons.person,
-      color: const Color(0xFF0F5A5C),
+      color: const Color(0xFF27A1A6),
       size: size * 0.55,
     );
 
-    if (imagePath == 'avatar1') {
-      bgColor = Colors.deepPurple[100]!;
-      icon = Icon(Icons.face, color: Colors.deepPurple[700], size: size * 0.6);
-    } else if (imagePath == 'avatar2') {
-      bgColor = Colors.teal[100]!;
-      icon = Icon(Icons.elderly, color: Colors.teal[700], size: size * 0.6);
-    } else if (imagePath == 'avatar3') {
-      bgColor = Colors.orange[100]!;
-      icon = Icon(
-        Icons.person_pin,
-        color: Colors.orange[700],
-        size: size * 0.6,
+    bool fileExists = false;
+    try {
+      if (imagePath.isNotEmpty && !imagePath.startsWith('avatar')) {
+        fileExists = File(imagePath).existsSync();
+      }
+    } catch (_) {
+      fileExists = false;
+    }
+
+    if (fileExists) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0xFF27A1A6), width: 2),
+        ),
+        child: ClipOval(
+          child: Image.file(
+            File(imagePath),
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return Container(color: bgColor, child: icon);
+            },
+          ),
+        ),
       );
-    } else if (imagePath == 'avatar4') {
-      bgColor = Colors.green[100]!;
-      icon = Icon(
-        Icons.elderly_woman,
-        color: Colors.green[700],
-        size: size * 0.6,
-      );
-    } else if (imagePath == 'avatar5') {
-      bgColor = Colors.pink[100]!;
-      icon = Icon(Icons.favorite, color: Colors.pink[700], size: size * 0.6);
-    } else if (imagePath == 'avatar6') {
-      bgColor = Colors.blue[100]!;
-      icon = Icon(
-        Icons.face_retouching_natural,
-        color: Colors.blue[700],
-        size: size * 0.6,
-      );
+    }
+
+    if (imagePath.startsWith('avatar_')) {
+      final name = imagePath.replaceAll('avatar_', '');
+      final isAssetAvailable = [
+        'eren',
+        'mikasa',
+        'levi',
+        'armin',
+        'erwin',
+        'sasha',
+      ].contains(name);
+
+      if (isAssetAvailable) {
+        return Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: const Color(0xFF27A1A6), width: 2),
+          ),
+          child: ClipOval(
+            child: Image.asset(
+              'assets/$name.png',
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              alignment: name == 'sasha'
+                  ? Alignment.topCenter
+                  : Alignment.center,
+              errorBuilder: (context, error, stackTrace) {
+                return _buildFallbackInitials(name, size);
+              },
+            ),
+          ),
+        );
+      } else {
+        return _buildFallbackInitials(name, size);
+      }
     }
 
     return Container(
@@ -1597,14 +2230,129 @@ class _AkunTab extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: bgColor,
-        border: Border.all(color: const Color(0xFF0F5A5C), width: 2),
+        border: Border.all(color: const Color(0xFF27A1A6), width: 2),
       ),
       child: icon,
     );
   }
 
-  void _showPhotoPicker(BuildContext context) {
+  Future<void> _pickImage(BuildContext context, ImageSource source) async {
+    final picker = ImagePicker();
     final store = DataStore();
+    try {
+      final XFile? pickedFile = await picker.pickImage(
+        source: source,
+        maxWidth: 500,
+        maxHeight: 500,
+        imageQuality: 80,
+      );
+
+      if (pickedFile != null) {
+        store.updateProfile(
+          name: store.userName,
+          age: store.userAge,
+          gender: store.userGender,
+          nik: store.userNik,
+          familyContact: store.userFamilyContact,
+          medicalHistory: store.userMedicalHistory,
+          profileImage: pickedFile.path,
+        );
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto profil berhasil diubah!')),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error mengambil gambar: $e");
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mengambil gambar: $e')));
+    }
+  }
+
+  void _showPhotoPicker(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(top: 10, bottom: 10),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  'Ubah Foto Profil',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF27A1A6),
+                  ),
+                ),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const Icon(Icons.camera_alt, color: Color(0xFF27A1A6)),
+                title: const Text('Ambil Foto dari Kamera'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(context, ImageSource.camera);
+                },
+              ),
+              ListTile(
+                leading: const Icon(
+                  Icons.photo_library,
+                  color: Color(0xFF27A1A6),
+                ),
+                title: const Text('Pilih dari Galeri'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _pickImage(context, ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.face, color: Color(0xFF27A1A6)),
+                title: const Text('Gunakan Avatar'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showSimulatedAvatarDialog(context);
+                },
+              ),
+              const SizedBox(height: 10),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showSimulatedAvatarDialog(BuildContext context) {
+    final store = DataStore();
+    final aotAvatars = [
+      {'id': 'avatar_eren', 'name': 'Eren', 'color': const Color(0xFF2E4F4F)},
+      {
+        'id': 'avatar_mikasa',
+        'name': 'Mikasa',
+        'color': const Color(0xFF8C3333),
+      },
+      {'id': 'avatar_armin', 'name': 'Armin', 'color': const Color(0xFFE4A11B)},
+      {'id': 'avatar_levi', 'name': 'Levi', 'color': const Color(0xFF2C3E50)},
+      {'id': 'avatar_erwin', 'name': 'Erwin', 'color': const Color(0xFF7F8C8D)},
+      {'id': 'avatar_sasha', 'name': 'Sasha', 'color': const Color(0xFFD35400)},
+    ];
+
     showDialog(
       context: context,
       builder: (context) {
@@ -1613,9 +2361,9 @@ class _AkunTab extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
           ),
           title: const Text(
-            'Simulasi Galeri Foto',
+            'Pilih Avatar',
             style: TextStyle(
-              color: Color(0xFF0F5A5C),
+              color: Color(0xFF27A1A6),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -1623,65 +2371,133 @@ class _AkunTab extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'Pilih foto profil Anda dari galeri hp:',
+                'Pilih salah satu karakter:',
                 style: TextStyle(fontSize: 13, color: Colors.grey),
               ),
               const SizedBox(height: 16),
-              GridView.count(
-                crossAxisCount: 3,
-                shrinkWrap: true,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                children: [
-                  _buildPickerOption(
-                    context,
-                    store,
-                    'avatar1',
-                    Colors.deepPurple[100]!,
-                    Icons.face,
-                    Colors.deepPurple,
-                  ),
-                  _buildPickerOption(
-                    context,
-                    store,
-                    'avatar2',
-                    Colors.teal[100]!,
-                    Icons.elderly,
-                    Colors.teal,
-                  ),
-                  _buildPickerOption(
-                    context,
-                    store,
-                    'avatar3',
-                    Colors.orange[100]!,
-                    Icons.person_pin,
-                    Colors.orange,
-                  ),
-                  _buildPickerOption(
-                    context,
-                    store,
-                    'avatar4',
-                    Colors.green[100]!,
-                    Icons.elderly_woman,
-                    Colors.green,
-                  ),
-                  _buildPickerOption(
-                    context,
-                    store,
-                    'avatar5',
-                    Colors.pink[100]!,
-                    Icons.favorite,
-                    Colors.pink,
-                  ),
-                  _buildPickerOption(
-                    context,
-                    store,
-                    'avatar6',
-                    Colors.blue[100]!,
-                    Icons.face_retouching_natural,
-                    Colors.blue,
-                  ),
-                ],
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                alignment: WrapAlignment.center,
+                children: aotAvatars.map((char) {
+                  final String path = char['id'] as String;
+                  final String name = char['name'] as String;
+                  final Color color = char['color'] as Color;
+                  final isSelected = store.userProfileImagePath == path;
+
+                  return GestureDetector(
+                    onTap: () {
+                      store.updateProfile(
+                        name: store.userName,
+                        age: store.userAge,
+                        gender: store.userGender,
+                        nik: store.userNik,
+                        familyContact: store.userFamilyContact,
+                        medicalHistory: store.userMedicalHistory,
+                        profileImage: path,
+                      );
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Foto profil berhasil diubah menjadi $name!',
+                          ),
+                        ),
+                      );
+                    },
+                    child: SizedBox(
+                      width: 70,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: color,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected
+                                    ? const Color(0xFF27A1A6)
+                                    : Colors.grey.shade300,
+                                width: isSelected ? 3.0 : 1.0,
+                              ),
+                            ),
+                            child: ClipOval(
+                              child:
+                                  [
+                                    'eren',
+                                    'mikasa',
+                                    'levi',
+                                    'armin',
+                                    'erwin',
+                                    'sasha',
+                                  ].contains(name.toLowerCase())
+                                  ? Image.asset(
+                                      'assets/${name.toLowerCase()}.png',
+                                      width: 48,
+                                      height: 48,
+                                      fit: BoxFit.cover,
+                                      alignment: name.toLowerCase() == 'sasha'
+                                          ? Alignment.topCenter
+                                          : Alignment.center,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                            return Center(
+                                              child: Text(
+                                                name
+                                                    .substring(
+                                                      0,
+                                                      name.length > 2
+                                                          ? 3
+                                                          : name.length,
+                                                    )
+                                                    .toUpperCase(),
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                    )
+                                  : Center(
+                                      child: Text(
+                                        name
+                                            .substring(
+                                              0,
+                                              name.length > 2 ? 3 : name.length,
+                                            )
+                                            .toUpperCase(),
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            name,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? const Color(0xFF27A1A6)
+                                  : Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
             ],
           ),
@@ -1696,46 +2512,6 @@ class _AkunTab extends StatelessWidget {
     );
   }
 
-  Widget _buildPickerOption(
-    BuildContext context,
-    DataStore store,
-    String path,
-    Color bgColor,
-    IconData icon,
-    Color iconColor,
-  ) {
-    return GestureDetector(
-      onTap: () {
-        store.updateProfile(
-          name: store.userName,
-          age: store.userAge,
-          gender: store.userGender,
-          nik: store.userNik,
-          familyContact: store.userFamilyContact,
-          medicalHistory: store.userMedicalHistory,
-          profileImage: path,
-        );
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Foto profil berhasil diubah!')),
-        );
-      },
-      child: Container(
-        decoration: BoxDecoration(
-          color: bgColor,
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: store.userProfileImagePath == path
-                ? const Color(0xFF0F5A5C)
-                : Colors.grey.shade300,
-            width: store.userProfileImagePath == path ? 3.0 : 1.0,
-          ),
-        ),
-        child: Icon(icon, color: iconColor, size: 28),
-      ),
-    );
-  }
-
   void _showEditProfileDialog(BuildContext context) {
     final store = DataStore();
     final nameCtrl = TextEditingController(text: store.userName);
@@ -1744,6 +2520,10 @@ class _AkunTab extends StatelessWidget {
     final contactCtrl = TextEditingController(text: store.userFamilyContact);
     final historyCtrl = TextEditingController(text: store.userMedicalHistory);
     String gender = store.userGender;
+    if (gender != 'Perempuan' && gender != 'Laki-laki') {
+      gender = 'Perempuan';
+    }
+    String selectedPosyandu = store.kaderPosyandu;
 
     showDialog(
       context: context,
@@ -1755,7 +2535,7 @@ class _AkunTab extends StatelessWidget {
           title: const Text(
             'Edit Profil Anda',
             style: TextStyle(
-              color: Color(0xFF0F5A5C),
+              color: Color(0xFF27A1A6),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -1792,6 +2572,36 @@ class _AkunTab extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
+                StatefulBuilder(
+                  builder: (context, setStateDialog) {
+                    return InkWell(
+                      onTap: () {
+                        _showSearchablePosyanduPicker(
+                          context: context,
+                          currentValue: selectedPosyandu,
+                          onSelected: (val) {
+                            setStateDialog(() {
+                              selectedPosyandu = val;
+                            });
+                          },
+                        );
+                      },
+                      child: IgnorePointer(
+                        child: TextFormField(
+                          controller: TextEditingController(
+                            text: selectedPosyandu,
+                          ),
+                          key: ValueKey(selectedPosyandu),
+                          decoration: const InputDecoration(
+                            labelText: 'Posyandu yang Didatangi',
+                            suffixIcon: Icon(Icons.arrow_drop_down),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
                   initialValue: gender,
                   items: ['Perempuan', 'Laki-laki'].map((String val) {
@@ -1826,6 +2636,7 @@ class _AkunTab extends StatelessWidget {
                     familyContact: contactCtrl.text,
                     medicalHistory: historyCtrl.text,
                   );
+                  store.updateKaderPosyandu(selectedPosyandu);
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -1835,7 +2646,7 @@ class _AkunTab extends StatelessWidget {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0F5A5C),
+                backgroundColor: const Color(0xFF27A1A6),
               ),
               child: const Text(
                 'Simpan',
@@ -1867,7 +2678,7 @@ class _AkunTab extends StatelessWidget {
               title: const Text(
                 'Pengaturan Aplikasi',
                 style: TextStyle(
-                  color: Color(0xFF0F5A5C),
+                  color: Color(0xFF27A1A6),
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -1888,7 +2699,7 @@ class _AkunTab extends StatelessWidget {
                         style: TextStyle(fontSize: 11),
                       ),
                       value: nDay,
-                      activeThumbColor: const Color(0xFF0F5A5C),
+                      activeThumbColor: const Color(0xFF27A1A6),
                       onChanged: (val) {
                         setState(() {
                           nDay = val;
@@ -1908,7 +2719,7 @@ class _AkunTab extends StatelessWidget {
                         style: TextStyle(fontSize: 11),
                       ),
                       value: nMed,
-                      activeThumbColor: const Color(0xFF0F5A5C),
+                      activeThumbColor: const Color(0xFF27A1A6),
                       onChanged: (val) {
                         setState(() {
                           nMed = val;
@@ -1928,7 +2739,7 @@ class _AkunTab extends StatelessWidget {
                         style: TextStyle(fontSize: 11),
                       ),
                       value: dMode,
-                      activeThumbColor: const Color(0xFF0F5A5C),
+                      activeThumbColor: const Color(0xFF27A1A6),
                       onChanged: (val) {
                         setState(() {
                           dMode = val;
@@ -1937,8 +2748,37 @@ class _AkunTab extends StatelessWidget {
                       },
                     ),
                     const SizedBox(height: 8),
+                    DropdownButtonFormField<double>(
+                      initialValue: store.fontSizeFactor,
+                      decoration: const InputDecoration(
+                        labelText: 'Ukuran Tulisan',
+                        labelStyle: TextStyle(fontSize: 14),
+                      ),
+                      items: const [
+                        DropdownMenuItem<double>(
+                          value: 1.0,
+                          child: Text('Biasa (Sedang)'),
+                        ),
+                        DropdownMenuItem<double>(
+                          value: 1.25,
+                          child: Text('Besar'),
+                        ),
+                        DropdownMenuItem<double>(
+                          value: 1.5,
+                          child: Text('Sangat Besar'),
+                        ),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() {
+                            store.updateFontSizeFactor(val);
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 8),
                     DropdownButtonFormField<String>(
-                      value: lang,
+                      initialValue: lang,
                       decoration: const InputDecoration(
                         labelText: 'Bahasa Aplikasi',
                         labelStyle: TextStyle(fontSize: 14),
@@ -1966,7 +2806,7 @@ class _AkunTab extends StatelessWidget {
                   onPressed: () => Navigator.pop(context),
                   child: const Text(
                     'Tutup',
-                    style: TextStyle(color: Color(0xFF0F5A5C)),
+                    style: TextStyle(color: Color(0xFF27A1A6)),
                   ),
                 ),
               ],
@@ -1988,7 +2828,7 @@ class _AkunTab extends StatelessWidget {
           title: const Text(
             'Pusat Bantuan LansCare',
             style: TextStyle(
-              color: Color(0xFF0F5A5C),
+              color: Color(0xFF27A1A6),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -1998,16 +2838,19 @@ class _AkunTab extends StatelessWidget {
               shrinkWrap: true,
               children: [
                 _buildHelpItem(
+                  context,
                   'Bagaimana cara mencatat kesehatan?',
                   'Anda dapat menekan tab Kesehatan (kedua dari kiri) lalu tekan tombol tambah (+) di kanan atas. Masukkan vitalitas Anda dan simpan.',
                 ),
                 const SizedBox(height: 8),
                 _buildHelpItem(
+                  context,
                   'Bagaimana jika terjadi keadaan darurat?',
                   'Tekan tombol SOS di halaman beranda atau tab navigasi. Halaman tersebut menyediakan tombol alarm darurat serta kontak cepat keluarga dan puskesmas.',
                 ),
                 const SizedBox(height: 8),
                 _buildHelpItem(
+                  context,
                   'Bagaimana cara kerja pengingat obat?',
                   'Alarm minum obat akan aktif pada waktu yang Anda buat di menu Pengingat Obat. Centang lingkaran di sebelah kanan obat jika Anda sudah meminumnya.',
                 ),
@@ -2019,7 +2862,7 @@ class _AkunTab extends StatelessWidget {
               onPressed: () => Navigator.pop(context),
               child: const Text(
                 'Mengerti',
-                style: TextStyle(color: Color(0xFF0F5A5C)),
+                style: TextStyle(color: Color(0xFF27A1A6)),
               ),
             ),
           ],
@@ -2028,14 +2871,14 @@ class _AkunTab extends StatelessWidget {
     );
   }
 
-  Widget _buildHelpItem(String q, String a) {
+  Widget _buildHelpItem(BuildContext context, String q, String a) {
     return ExpansionTile(
       title: Text(
         q,
         style: const TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 13,
-          color: Color(0xFF0F5A5C),
+          color: Color(0xFF27A1A6),
         ),
       ),
       children: [
@@ -2043,10 +2886,10 @@ class _AkunTab extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(
             a,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 12,
               height: 1.4,
-              color: Colors.black87,
+              color: AppTheme.getSubtextColor(context),
             ),
           ),
         ),
@@ -2059,14 +2902,35 @@ class _AkunTab extends StatelessWidget {
     final store = DataStore();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Theme.of(context).cardColor,
         elevation: 0.5,
+        leading: IconButton(
+          icon: Icon(
+            Icons.arrow_back,
+            color: store.isDarkMode ? Colors.white : const Color(0xFF27A1A6),
+          ),
+          onPressed: () {
+            final dashState = context
+                .findAncestorStateOfType<DashboardPageState>();
+            if (dashState != null) {
+              dashState.changeTab(0);
+              return;
+            }
+            final kaderState = context
+                .findAncestorStateOfType<DashboardKaderPageState>();
+            if (kaderState != null) {
+              kaderState.changeTab(0);
+              return;
+            }
+            Navigator.pop(context);
+          },
+        ),
         title: const Text(
           'Profil Akun',
           style: TextStyle(
-            color: Color(0xFF0F5A5C),
+            color: Color(0xFF27A1A6),
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -2080,7 +2944,7 @@ class _AkunTab extends StatelessWidget {
               children: [
                 // Profile Banner
                 Container(
-                  color: Colors.white,
+                  color: AppTheme.getCardColor(context),
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
                     vertical: 24.0,
@@ -2100,7 +2964,7 @@ class _AkunTab extends StatelessWidget {
                               child: Container(
                                 padding: const EdgeInsets.all(4),
                                 decoration: const BoxDecoration(
-                                  color: Color(0xFF0F5A5C),
+                                  color: Color(0xFF27A1A6),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
@@ -2120,17 +2984,17 @@ class _AkunTab extends StatelessWidget {
                           children: [
                             Text(
                               store.userName,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18,
-                                color: Color(0xFF0F5A5C),
+                                color: AppTheme.getTextColor(context),
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'NIK: ${store.userNik}',
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: AppTheme.getSubtextColor(context),
                                 fontSize: 12,
                               ),
                             ),
@@ -2138,9 +3002,20 @@ class _AkunTab extends StatelessWidget {
                             Text(
                               '${store.userAge} Tahun • ${store.userGender}',
                               style: TextStyle(
-                                color: Colors.grey[700],
+                                color: AppTheme.getSubtextColor(context),
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Posyandu: ${store.kaderPosyandu}',
+                              style: TextStyle(
+                                color: store.isDarkMode
+                                    ? const Color(0xFF40C4FF)
+                                    : const Color(0xFF0F5A5C),
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 6),
@@ -2165,7 +3040,7 @@ class _AkunTab extends StatelessWidget {
 
                 // Settings List
                 Container(
-                  color: Colors.white,
+                  color: AppTheme.getCardColor(context),
                   child: Column(
                     children: [
                       _buildMenuItem(
@@ -2223,13 +3098,16 @@ class _AkunTab extends StatelessWidget {
                         },
                       ),
                       Divider(color: Colors.grey[200]),
-                      _buildMenuItem(context, Icons.logout, 'Keluar', () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginPage(),
-                          ),
-                        );
+                      _buildMenuItem(context, Icons.logout, 'Keluar', () async {
+                        await DatabaseHelper.instance.clearSession();
+                        if (context.mounted) {
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RoleSelectionPage(),
+                            ),
+                          );
+                        }
                       }, isDanger: true),
                     ],
                   ),
@@ -2251,7 +3129,7 @@ class _AkunTab extends StatelessWidget {
           title,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            color: Color(0xFF0F5A5C),
+            color: Color(0xFF27A1A6),
           ),
         ),
         content: Text(info, style: const TextStyle(height: 1.4)),
@@ -2260,7 +3138,7 @@ class _AkunTab extends StatelessWidget {
             onPressed: () => Navigator.pop(context),
             child: const Text(
               'Tutup',
-              style: TextStyle(color: Color(0xFF0F5A5C)),
+              style: TextStyle(color: Color(0xFF27A1A6)),
             ),
           ),
         ],
@@ -2275,19 +3153,146 @@ class _AkunTab extends StatelessWidget {
     VoidCallback onTap, {
     bool isDanger = false,
   }) {
-    final color = isDanger ? Colors.red : const Color(0xFF0F5A5C);
+    final color = isDanger ? Colors.red : const Color(0xFF27A1A6);
     return ListTile(
       leading: Icon(icon, color: color),
       title: Text(
         title,
         style: TextStyle(
           fontWeight: FontWeight.w600,
-          color: isDanger ? Colors.red : Colors.black87,
+          color: isDanger ? Colors.red : AppTheme.getTextColor(context),
           fontSize: 14,
         ),
       ),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
       onTap: onTap,
+    );
+  }
+
+  void _showSearchablePosyanduPicker({
+    required BuildContext context,
+    required String currentValue,
+    required ValueChanged<String> onSelected,
+  }) {
+    final store = DataStore();
+    final searchCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            final query = searchCtrl.text.trim();
+            final filteredList = store.posyandus
+                .where(
+                  (item) => item.toLowerCase().contains(query.toLowerCase()),
+                )
+                .toList();
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Text(
+                'Pilih Posyandu',
+                style: TextStyle(
+                  color: Color(0xFF27A1A6),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: searchCtrl,
+                      decoration: InputDecoration(
+                        hintText: 'Cari Posyandu...',
+                        prefixIcon: const Icon(
+                          Icons.search,
+                          color: Color(0xFF27A1A6),
+                        ),
+                        filled: true,
+                        fillColor:
+                            Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey.shade900
+                            : Colors.grey.shade100,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      onChanged: (val) {
+                        setStateDialog(() {});
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.4,
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (filteredList.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20.0),
+                              child: Text('Posyandu tidak ditemukan'),
+                            ),
+                          if (filteredList.isNotEmpty)
+                            Flexible(
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: filteredList.length,
+                                itemBuilder: (context, index) {
+                                  final item = filteredList[index];
+                                  final isSelected = item == currentValue;
+                                  return ListTile(
+                                    title: Text(
+                                      item,
+                                      style: TextStyle(
+                                        fontWeight: isSelected
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                        color: isSelected
+                                            ? const Color(0xFF27A1A6)
+                                            : null,
+                                      ),
+                                    ),
+                                    trailing: isSelected
+                                        ? const Icon(
+                                            Icons.check,
+                                            color: Color(0xFF27A1A6),
+                                          )
+                                        : null,
+                                    onTap: () {
+                                      onSelected(item);
+                                      Navigator.pop(context);
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }

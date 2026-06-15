@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import 'dashboard_page.dart';
 import 'data_store.dart';
+import 'database_helper.dart';
 import 'kader/dashboard_kader_page.dart';
 import 'widgets/logo_widget.dart';
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final bool isKader;
+  const LoginPage({super.key, required this.isKader});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -16,17 +18,26 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _isKaderLogin = false;
+  late bool _isKaderLogin;
+  String _selectedPosyandu = 'Posyandu Rt.11 Rw.03';
+
+  @override
+  void initState() {
+    super.initState();
+    _isKaderLogin = widget.isKader;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final themeColor = _isKaderLogin
-        ? const Color(0xFF2E7D32)
-        : const Color(0xFF0F5A5C);
+    final themeColor = AppTheme.getPrimaryColor(context);
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: SafeArea(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: AppTheme.getBgDecoration(context),
+        height: double.infinity,
+        width: double.infinity,
+        child: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
           child: Column(
@@ -34,15 +45,15 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               const SizedBox(height: 20),
               // Brand Logo
-              const LansCareLogo(size: 90),
+              const LansCareLogo(size: 180),
               const SizedBox(height: 16),
               // Brand Title
               Text(
-                _isKaderLogin ? 'KADER POSYANDU' : 'LANSCARE',
+                _isKaderLogin ? 'KADER LANSCARE' : 'LANSCARE',
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
-                  color: themeColor,
+                  color: AppTheme.getTextColor(context),
                   letterSpacing: 1.2,
                 ),
               ),
@@ -55,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
+                  color: AppTheme.getSubtextColor(context),
                 ),
               ),
               const SizedBox(height: 30),
@@ -63,10 +74,11 @@ class _LoginPageState extends State<LoginPage> {
               // Segmented Toggle between Lansia and Kader login portal
               Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? Colors.grey.shade900
-                      : Colors.grey.shade200,
+                  color: AppTheme.getCardColor(context),
                   borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: DataStore().isDarkMode ? Colors.white12 : Colors.grey.shade300,
+                  ),
                 ),
                 padding: const EdgeInsets.all(4),
                 child: Row(
@@ -82,7 +94,7 @@ class _LoginPageState extends State<LoginPage> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
                             color: !_isKaderLogin
-                                ? const Color(0xFF0F5A5C)
+                                ? themeColor
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -113,7 +125,7 @@ class _LoginPageState extends State<LoginPage> {
                           padding: const EdgeInsets.symmetric(vertical: 12),
                           decoration: BoxDecoration(
                             color: _isKaderLogin
-                                ? const Color(0xFF2E7D32)
+                                ? themeColor
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -138,42 +150,140 @@ class _LoginPageState extends State<LoginPage> {
               ),
               const SizedBox(height: 30),
 
+              // Posyandu label above field
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Posyandu',
+                  style: TextStyle(
+                    color: AppTheme.getTextColor(context),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Posyandu selection field
+              InkWell(
+                onTap: () {
+                  _showSearchablePosyanduPicker(
+                    context: context,
+                    currentValue: _selectedPosyandu,
+                    allowAddNew: _isKaderLogin,
+                    onSelected: (val) {
+                      setState(() {
+                        _selectedPosyandu = val;
+                      });
+                    },
+                  );
+                },
+                child: IgnorePointer(
+                  child: TextFormField(
+                    controller: TextEditingController(text: _selectedPosyandu),
+                    key: ValueKey(_selectedPosyandu),
+                    decoration: InputDecoration(
+                      hintText: 'Pilih Posyandu Anda',
+                      hintStyle: TextStyle(
+                        color: DataStore().isDarkMode ? Colors.white60 : Colors.grey.shade500,
+                        fontSize: 13,
+                      ),
+                      prefixIcon: Icon(Icons.location_city, color: themeColor),
+                      suffixIcon: const Icon(Icons.arrow_drop_down),
+                      filled: true,
+                      fillColor: AppTheme.getCardColor(context),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(
+                          color: DataStore().isDarkMode ? Colors.white12 : Colors.grey.shade300,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12.0),
+                        borderSide: BorderSide(color: themeColor, width: 1.8),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // Identity label above field
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  _isKaderLogin ? 'Identitas Kader' : 'Identitas Lansia',
+                  style: TextStyle(
+                    color: AppTheme.getTextColor(context),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               // Email / HP / NIK Field
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
                   hintText: _isKaderLogin
                       ? 'Email Kader / NIK'
-                      : 'Email / NIK Lansia / No. HP',
+                      : 'Email / NIK / No. HP',
+                  hintStyle: TextStyle(
+                    color: DataStore().isDarkMode ? Colors.white60 : Colors.grey.shade500,
+                    fontSize: 13,
+                  ),
                   prefixIcon: Icon(
                     _isKaderLogin ? Icons.badge_outlined : Icons.email_outlined,
                     color: themeColor,
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).cardColor,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16.0),
+                  fillColor: AppTheme.getCardColor(context),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                    borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide.none,
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                    borderSide: BorderSide(color: Colors.grey.shade200),
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(
+                      color: DataStore().isDarkMode ? Colors.white12 : Colors.grey.shade300,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                    borderSide: BorderSide(color: themeColor, width: 1.5),
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: themeColor, width: 1.8),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
 
+              // Password label above field
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'Kata Sandi',
+                  style: TextStyle(
+                    color: AppTheme.getTextColor(context),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
               // Password Field
               TextFormField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
-                  hintText: 'Password',
+                  hintText: 'Masukkan password',
+                  hintStyle: TextStyle(
+                    color: DataStore().isDarkMode ? Colors.white60 : Colors.grey.shade500,
+                    fontSize: 13,
+                  ),
                   prefixIcon: Icon(Icons.lock_outline, color: themeColor),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -189,19 +299,21 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).cardColor,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 16.0),
+                  fillColor: AppTheme.getCardColor(context),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
+                    borderRadius: BorderRadius.circular(12.0),
                     borderSide: BorderSide.none,
                   ),
                   enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                    borderSide: BorderSide(color: Colors.grey.shade200),
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(
+                      color: DataStore().isDarkMode ? Colors.white12 : Colors.grey.shade300,
+                    ),
                   ),
                   focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                    borderSide: BorderSide(color: themeColor, width: 1.5),
+                    borderRadius: BorderRadius.circular(12.0),
+                    borderSide: BorderSide(color: themeColor, width: 1.8),
                   ),
                 ),
               ),
@@ -223,8 +335,8 @@ class _LoginPageState extends State<LoginPage> {
                   child: Text(
                     'Lupa password?',
                     style: TextStyle(
-                      color: themeColor,
-                      fontWeight: FontWeight.w600,
+                      color: DataStore().isDarkMode ? themeColor : const Color(0xFF0F5A5C),
+                      fontWeight: FontWeight.bold,
                       fontSize: 13,
                     ),
                   ),
@@ -244,128 +356,51 @@ class _LoginPageState extends State<LoginPage> {
 
                     final user = store.authenticate(email, password);
                     if (user != null) {
-                      if (_isKaderLogin) {
-                        // User trying to log in as Kader
-                        if (user.role == 'Kader') {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const DashboardKaderPage(),
-                            ),
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Berhasil masuk sebagai Kader: ${user.name}!',
-                              ),
-                            ),
-                          );
-                        } else {
-                          // Deny if Lansia tries to log in under Kader tab
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              title: const Row(
-                                children: [
-                                  Icon(
-                                    Icons.warning_amber_rounded,
-                                    color: Colors.orange,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Akses Tab Salah',
-                                    style: TextStyle(
-                                      color: Colors.orange,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              content: const Text(
-                                'Akun Anda terdaftar sebagai Lansia. Silakan masuk melalui pilihan tab "Masuk Lansia" di atas.',
-                                style: TextStyle(height: 1.4),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text(
-                                    'OK',
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                      } else {
-                        // User trying to log in as Lansia
-                        if (user.role == 'Lansia') {
-                          store.updateProfile(
-                            name: user.name,
-                            age: user.age,
-                            gender: user.gender,
-                            nik: user.nik,
-                            familyContact: user.familyContact,
-                            medicalHistory: user.medicalHistory,
-                            profileImage: user.profileImage,
-                          );
+                      DatabaseHelper.instance.saveSession(user.email, user.role);
+                      store.currentUserEmail = user.email;
+                      store.currentUserRole = user.role;
+                      store.loadHealthRecords(user.email);
+                      store.updateProfile(
+                        name: user.name,
+                        age: user.age,
+                        gender: user.gender,
+                        nik: user.nik,
+                        familyContact: user.familyContact,
+                        medicalHistory: user.medicalHistory,
+                        profileImage: user.profileImage,
+                        posyandu: user.posyandu,
+                        kaderContact: user.kaderContact,
+                      );
+                      store.updateKaderPosyandu(user.posyandu);
 
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const DashboardPage(),
+                      if (user.role == 'Kader') {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DashboardKaderPage(),
+                          ),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Berhasil masuk sebagai Kader: ${user.name}!',
                             ),
-                          );
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                'Selamat datang kembali, ${user.name}!',
-                              ),
+                          ),
+                        );
+                      } else {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DashboardPage(),
+                          ),
+                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Selamat datang kembali, ${user.name}!',
                             ),
-                          );
-                        } else {
-                          // Deny if Kader tries to log in under Lansia tab
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              title: const Row(
-                                children: [
-                                  Icon(
-                                    Icons.warning_amber_rounded,
-                                    color: Colors.orange,
-                                  ),
-                                  SizedBox(width: 8),
-                                  Text(
-                                    'Akses Tab Salah',
-                                    style: TextStyle(
-                                      color: Colors.orange,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              content: const Text(
-                                'Akun Anda terdaftar sebagai Kader Posyandu. Silakan masuk melalui pilihan tab "Masuk Kader" di atas.',
-                                style: TextStyle(height: 1.4),
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text(
-                                    'OK',
-                                    style: TextStyle(color: Colors.grey),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        }
+                          ),
+                        );
                       }
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -382,7 +417,7 @@ class _LoginPageState extends State<LoginPage> {
                     backgroundColor: themeColor,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8.0),
+                      borderRadius: BorderRadius.circular(12.0),
                     ),
                     elevation: 0,
                   ),
@@ -403,11 +438,14 @@ class _LoginPageState extends State<LoginPage> {
                 children: [
                   Text(
                     'Belum punya akun? ',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                    style: TextStyle(
+                      color: DataStore().isDarkMode ? Colors.white70 : const Color(0xFF1B3D44),
+                      fontSize: 13,
+                    ),
                   ),
                   GestureDetector(
                     onTap: () {
-                      _showRegisterDialog();
+                      _showRegisterDialog(isKader: _isKaderLogin);
                     },
                     child: Text(
                       'Daftar',
@@ -426,196 +464,391 @@ class _LoginPageState extends State<LoginPage> {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
-  void _showRegisterDialog() {
+  void _showRegisterDialog({required bool isKader}) {
     final emailCtrl = TextEditingController();
     final passCtrl = TextEditingController();
     final nameCtrl = TextEditingController();
     final ageCtrl = TextEditingController();
     final nikCtrl = TextEditingController();
     final familyContactCtrl = TextEditingController();
-    final medicalHistoryCtrl = TextEditingController();
     String gender = 'Perempuan';
-    String role = 'Lansia';
+    String registerPosyandu = 'Posyandu Rt.11 Rw.03';
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text(
-            'Daftar Akun LansCare',
-            style: TextStyle(
-              color: Color(0xFF0F5A5C),
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: emailCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Email / No. HP',
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(
+                isKader ? 'Daftar Akun Kader' : 'Daftar Akun Lansia',
+                style: TextStyle(
+                  color: AppTheme.getPrimaryColor(context),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: nameCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Nama Lengkap',
+                      ),
+                    ),
+                    TextField(
+                      controller: emailCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Email / Gmail',
+                      ),
+                    ),
+                    TextField(
+                      controller: passCtrl,
+                      obscureText: true,
+                      decoration: const InputDecoration(labelText: 'Password'),
+                    ),
+                    TextField(
+                      controller: ageCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Umur (Tahun)',
+                      ),
+                    ),
+                    if (isKader) ...[
+                      TextField(
+                        controller: nikCtrl,
+                        keyboardType: TextInputType.number,
+                        decoration: const InputDecoration(
+                          labelText: 'NIK (16 Digit)',
+                        ),
+                      ),
+                      TextField(
+                        controller: familyContactCtrl,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
+                          labelText: 'Nomor Telepon Anda (Kader)',
+                          hintText: '0812...',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        initialValue: gender,
+                        items: ['Perempuan', 'Laki-laki'].map((String val) {
+                          return DropdownMenuItem<String>(
+                            value: val,
+                            child: Text(val),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setStateDialog(() {
+                              gender = val;
+                            });
+                          }
+                        },
+                        decoration: const InputDecoration(
+                          labelText: 'Jenis Kelamin',
+                        ),
+                      ),
+                      InkWell(
+                        onTap: () {
+                          _showSearchablePosyanduPicker(
+                            context: context,
+                            currentValue: registerPosyandu,
+                            allowAddNew: isKader,
+                            onSelected: (val) {
+                              setStateDialog(() {
+                                registerPosyandu = val;
+                              });
+                            },
+                          );
+                        },
+                        child: IgnorePointer(
+                          child: TextFormField(
+                            controller: TextEditingController(
+                              text: registerPosyandu,
+                            ),
+                            key: ValueKey(registerPosyandu),
+                            decoration: const InputDecoration(
+                              labelText: 'Pilih Posyandu',
+                              suffixIcon: Icon(Icons.arrow_drop_down),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(color: Colors.grey),
                   ),
                 ),
-                TextField(
-                  controller: passCtrl,
-                  obscureText: true,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                ),
-                TextField(
-                  controller: nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Nama Lengkap'),
-                ),
-                TextField(
-                  controller: nikCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'NIK (16 Digit)',
-                  ),
-                ),
-                TextField(
-                  controller: ageCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Umur (Tahun)'),
-                ),
-                TextField(
-                  controller: familyContactCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Kontak Keluarga (Nama - No HP)',
-                    hintText: 'Anak: Budi - 0812...',
-                  ),
-                ),
-                TextField(
-                  controller: medicalHistoryCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Riwayat Penyakit',
-                    hintText: 'Hipertensi, Kolesterol, dll',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: gender,
-                  items: ['Perempuan', 'Laki-laki'].map((String val) {
-                    return DropdownMenuItem<String>(
-                      value: val,
-                      child: Text(val),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    if (val != null) gender = val;
+                ElevatedButton(
+                  onPressed: () {
+                    if (emailCtrl.text.isNotEmpty &&
+                        passCtrl.text.isNotEmpty &&
+                        nameCtrl.text.isNotEmpty &&
+                        ageCtrl.text.isNotEmpty &&
+                        (!isKader || nikCtrl.text.isNotEmpty)) {
+                      final store = DataStore();
+                      final role = isKader ? 'Kader' : 'Lansia';
+                      final registeredEmail = emailCtrl.text.trim();
+                      store.registerUser(
+                        email: registeredEmail,
+                        password: passCtrl.text,
+                        name: nameCtrl.text,
+                        age: int.tryParse(ageCtrl.text) ?? 60,
+                        gender: isKader ? gender : 'Belum diisi',
+                        role: role,
+                        nik: isKader ? nikCtrl.text.trim() : 'Belum diisi',
+                        familyContact: isKader && familyContactCtrl.text.isNotEmpty
+                            ? familyContactCtrl.text
+                            : 'Belum diisi',
+                        medicalHistory: 'Tidak ada',
+                        posyandu: isKader ? registerPosyandu : 'Posyandu Melati',
+                        kaderContact: '',
+                      );
+
+                      DatabaseHelper.instance.saveSession(registeredEmail, role);
+                      store.currentUserEmail = registeredEmail;
+                      store.currentUserRole = role;
+                      store.loadHealthRecords(registeredEmail);
+
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            'Akun ${nameCtrl.text} ($role) berhasil didaftarkan!',
+                          ),
+                        ),
+                      );
+
+                      // Auto log in based on registered role
+                      if (isKader) {
+                        store.updateProfile(
+                          name: nameCtrl.text,
+                          age: int.tryParse(ageCtrl.text) ?? 40,
+                          gender: gender,
+                          nik: nikCtrl.text.trim(),
+                          familyContact: familyContactCtrl.text.isNotEmpty
+                              ? familyContactCtrl.text
+                              : 'Belum diisi',
+                          medicalHistory: 'Tidak ada',
+                          posyandu: registerPosyandu,
+                        );
+                        store.updateKaderPosyandu(registerPosyandu);
+                        Navigator.pushReplacement(
+                           context,
+                          MaterialPageRoute(
+                            builder: (context) => const DashboardKaderPage(),
+                          ),
+                        );
+                      } else {
+                        store.updateProfile(
+                          name: nameCtrl.text,
+                          age: int.tryParse(ageCtrl.text) ?? 60,
+                          gender: 'Belum diisi',
+                          nik: 'Belum diisi',
+                          familyContact: 'Belum diisi',
+                          medicalHistory: 'Tidak ada',
+                          posyandu: 'Posyandu Melati',
+                        );
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DashboardPage(),
+                          ),
+                        );
+                      }
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            isKader 
+                              ? 'Mohon isi data pendaftaran (Email, Password, Nama, NIK, dan Umur)!'
+                              : 'Mohon isi data pendaftaran (Nama, Email, Password, dan Umur)!',
+                          ),
+                        ),
+                      );
+                    }
                   },
-                  decoration: const InputDecoration(labelText: 'Jenis Kelamin'),
-                ),
-                DropdownButtonFormField<String>(
-                  initialValue: role,
-                  items: ['Lansia', 'Kader'].map((String val) {
-                    return DropdownMenuItem<String>(
-                      value: val,
-                      child: Text(val),
-                    );
-                  }).toList(),
-                  onChanged: (val) {
-                    if (val != null) role = val;
-                  },
-                  decoration: const InputDecoration(
-                    labelText: 'Daftar Sebagai',
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.getPrimaryColor(context),
+                  ),
+                  child: const Text(
+                    'Daftar & Masuk',
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Batal', style: TextStyle(color: Colors.grey)),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                if (emailCtrl.text.isNotEmpty &&
-                    passCtrl.text.isNotEmpty &&
-                    nameCtrl.text.isNotEmpty &&
-                    nikCtrl.text.isNotEmpty &&
-                    ageCtrl.text.isNotEmpty) {
-                  final store = DataStore();
-                  store.registerUser(
-                    email: emailCtrl.text.trim(),
-                    password: passCtrl.text,
-                    name: nameCtrl.text,
-                    age: int.tryParse(ageCtrl.text) ?? 60,
-                    gender: gender,
-                    role: role,
-                    nik: nikCtrl.text.trim(),
-                    familyContact: familyContactCtrl.text.isNotEmpty
-                        ? familyContactCtrl.text
-                        : 'Belum diisi',
-                    medicalHistory: medicalHistoryCtrl.text.isNotEmpty
-                        ? medicalHistoryCtrl.text
-                        : 'Tidak ada',
-                  );
+            );
+          },
+        );
+      },
+    );
+  }
 
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Akun ${nameCtrl.text} ($role) berhasil didaftarkan!',
+  void _showSearchablePosyanduPicker({
+    required BuildContext context,
+    required String currentValue,
+    required ValueChanged<String> onSelected,
+    bool allowAddNew = true,
+  }) {
+    final store = DataStore();
+    final searchCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            final query = searchCtrl.text.trim();
+            final filteredList = store.posyandus
+                .where(
+                  (item) => item.toLowerCase().contains(query.toLowerCase()),
+                )
+                .toList();
+
+            final showAddNew =
+                allowAddNew &&
+                query.isNotEmpty &&
+                !store.posyandus.any(
+                  (item) => item.toLowerCase() == query.toLowerCase(),
+                );
+
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: Text(
+                'Pilih Posyandu',
+                style: TextStyle(
+                  color: AppTheme.getPrimaryColor(context),
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextField(
+                      controller: searchCtrl,
+                      decoration: InputDecoration(
+                        hintText: 'Cari Posyandu...',
+                        prefixIcon: Icon(
+                          Icons.search,
+                          color: AppTheme.getPrimaryColor(context),
+                        ),
+                        filled: true,
+                        fillColor:
+                            Theme.of(context).brightness == Brightness.dark
+                            ? Colors.grey.shade900
+                            : Colors.grey.shade100,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10.0),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      onChanged: (val) {
+                        setStateDialog(() {});
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: MediaQuery.of(context).size.height * 0.3,
+                        ),
+                        child: ListView(
+                          shrinkWrap: true,
+                          children: [
+                            if (showAddNew)
+                              ListTile(
+                                leading: Icon(
+                                  Icons.add,
+                                  color: AppTheme.getPrimaryColor(context),
+                                ),
+                                title: Text(
+                                  'Tambah "$query"',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: AppTheme.getPrimaryColor(context),
+                                  ),
+                                ),
+                                subtitle: const Text(
+                                  'Jadikan posyandu baru di sistem',
+                                ),
+                                onTap: () {
+                                  store.addPosyandu(query);
+                                  onSelected(query);
+                                  Navigator.pop(context);
+                                },
+                              ),
+                            if (filteredList.isEmpty && !showAddNew)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 20.0),
+                                child: Center(
+                                  child: Text('Posyandu tidak ditemukan'),
+                                ),
+                              ),
+                            ...filteredList.map((item) {
+                              final isSelected = item == currentValue;
+                              return ListTile(
+                                title: Text(
+                                  item,
+                                  style: TextStyle(
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: isSelected
+                                        ? AppTheme.getPrimaryColor(context)
+                                        : null,
+                                  ),
+                                ),
+                                trailing: isSelected
+                                    ? Icon(
+                                        Icons.check,
+                                        color: AppTheme.getPrimaryColor(context),
+                                      )
+                                    : null,
+                                onTap: () {
+                                  onSelected(item);
+                                  Navigator.pop(context);
+                                },
+                              );
+                            }),
+                          ],
+                        ),
                       ),
                     ),
-                  );
-
-                  // Auto log in based on registered role
-                  if (role == 'Kader') {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const DashboardKaderPage(),
-                      ),
-                    );
-                  } else {
-                    store.updateProfile(
-                      name: nameCtrl.text,
-                      age: int.tryParse(ageCtrl.text) ?? 60,
-                      gender: gender,
-                      nik: nikCtrl.text.trim(),
-                      familyContact: familyContactCtrl.text.isNotEmpty
-                          ? familyContactCtrl.text
-                          : 'Belum diisi',
-                      medicalHistory: medicalHistoryCtrl.text.isNotEmpty
-                          ? medicalHistoryCtrl.text
-                          : 'Tidak ada',
-                    );
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const DashboardPage(),
-                      ),
-                    );
-                  }
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Mohon isi data pendaftaran (Email, Password, Nama, NIK, dan Umur)!',
-                      ),
-                    ),
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF0F5A5C),
+                  ],
+                ),
               ),
-              child: const Text(
-                'Daftar & Masuk',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text(
+                    'Batal',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
+              ],
+            );
+          },
         );
       },
     );

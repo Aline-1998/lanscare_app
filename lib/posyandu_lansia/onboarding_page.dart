@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'login_page.dart';
+import 'role_selection_page.dart';
+import 'data_store.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -36,136 +38,141 @@ class _OnboardingPageState extends State<OnboardingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F8F8),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView.builder(
-                controller: _pageController,
-                itemCount: _slides.length,
-                onPageChanged: (index) {
-                  setState(() {
-                    _currentIndex = index;
-                  });
-                },
-                itemBuilder: (context, index) {
-                  final slide = _slides[index];
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
-                    child: Column(
+      backgroundColor: Colors.transparent,
+      body: Container(
+        decoration: AppTheme.getBgDecoration(context),
+        height: double.infinity,
+        width: double.infinity,
+        child: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  itemCount: _slides.length,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentIndex = index;
+                    });
+                  },
+                  itemBuilder: (context, index) {
+                    final slide = _slides[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const SizedBox(height: 20),
+                          // Page Title
+                          Text(
+                            slide.title,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF27A1A6),
+                              height: 1.3,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          // Page Description
+                          Text(
+                            slide.description,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: AppTheme.getTextColor(context).withOpacity(0.75),
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 40),
+                          // Page Illustration
+                          Expanded(
+                            child: Center(
+                              child: Container(
+                                constraints: const BoxConstraints(maxHeight: 280),
+                                child: slide.illustrationBuilder(context),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              // Bottom section containing Dots & Button
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Dot indicators
+                    Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 20),
-                        // Page Title
-                        Text(
-                          slide.title,
-                          textAlign: TextAlign.center,
+                      children: List.generate(_slides.length, (index) {
+                        final isActive = index == _currentIndex;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 300),
+                          margin: const EdgeInsets.symmetric(horizontal: 4.0),
+                          height: 8.0,
+                          width: isActive ? 16.0 : 8.0,
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? const Color(0xFF27A1A6)
+                                : Colors.grey.shade400,
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 30),
+                    // Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_currentIndex < _slides.length - 1) {
+                            _pageController.nextPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeIn,
+                            );
+                          } else {
+                            // Go to Role Selection
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RoleSelectionPage(),
+                              ),
+                            );
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF27A1A6),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Text(
+                          _currentIndex == _slides.length - 1
+                              ? 'Mulai Sekarang'
+                              : 'Selanjutnya',
                           style: const TextStyle(
-                            fontSize: 22,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF0F5A5C),
-                            height: 1.3,
                           ),
-                        ),
-                        const SizedBox(height: 12),
-                        // Page Description
-                        Text(
-                          slide.description,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[700],
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 40),
-                        // Page Illustration
-                        Expanded(
-                          child: Center(
-                            child: Container(
-                              constraints: const BoxConstraints(maxHeight: 280),
-                              child: slide.illustrationBuilder(context),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ),
-            // Bottom section containing Dots & Button
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 30.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Dot indicators
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(_slides.length, (index) {
-                      final isActive = index == _currentIndex;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 300),
-                        margin: const EdgeInsets.symmetric(horizontal: 4.0),
-                        height: 8.0,
-                        width: isActive ? 16.0 : 8.0,
-                        decoration: BoxDecoration(
-                          color: isActive
-                              ? const Color(0xFF0F5A5C)
-                              : Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(4.0),
-                        ),
-                      );
-                    }),
-                  ),
-                  const SizedBox(height: 30),
-                  // Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_currentIndex < _slides.length - 1) {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeIn,
-                          );
-                        } else {
-                          // Go to Login
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LoginPage(),
-                            ),
-                          );
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF0F5A5C),
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8.0),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: Text(
-                        _currentIndex == _slides.length - 1
-                            ? 'Mulai Sekarang'
-                            : 'Selanjutnya',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -214,7 +221,7 @@ class _CouplePainter extends CustomPainter {
     // Grandpa (Left)
     final gpPaintHair = Paint()..color = Colors.grey[300]!;
     final gpPaintSkin = Paint()..color = const Color(0xFFFFD1A9);
-    final gpPaintShirt = Paint()..color = const Color(0xFF0F5A5C);
+    final gpPaintShirt = Paint()..color = const Color(0xFF27A1A6);
     
     // Shirt
     final gpShirtPath = Path();
@@ -332,7 +339,7 @@ class _HealthMonitoringIllustration extends StatelessWidget {
                   children: [
                     Container(height: 8, width: 80, color: Colors.grey[300]),
                     const SizedBox(height: 6),
-                    Container(height: 12, width: 120, color: const Color(0xFF0F5A5C)),
+                    Container(height: 12, width: 120, color: const Color(0xFF27A1A6)),
                   ],
                 ),
               )
@@ -428,7 +435,7 @@ class _CalendarReminderPainter extends CustomPainter {
     canvas.drawRect(calRect, calPaint);
 
     // Calendar header
-    final calHeader = Paint()..color = const Color(0xFF0F5A5C);
+    final calHeader = Paint()..color = const Color(0xFF27A1A6);
     canvas.drawRect(Rect.fromLTWH(width * 0.2, height * 0.25, width * 0.32, height * 0.1), calHeader);
 
     // Calendar grid lines
@@ -484,3 +491,5 @@ class _CalendarReminderPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
+
+

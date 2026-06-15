@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../data_store.dart';
 
 class LineChartWidget extends StatelessWidget {
@@ -38,7 +39,7 @@ class _LineChartPainter extends CustomPainter {
     if (records.isEmpty) return;
 
     final paintLine = Paint()
-      ..color = const Color(0xFF0F5A5C)
+      ..color = const Color(0xFF27A1A6)
       ..strokeWidth = 3.0
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
@@ -50,7 +51,7 @@ class _LineChartPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
 
     final paintDot = Paint()
-      ..color = const Color(0xFF0F5A5C)
+      ..color = const Color(0xFF27A1A6)
       ..style = PaintingStyle.fill;
 
     final paintDotDiastolic = Paint()
@@ -110,10 +111,7 @@ class _LineChartPainter extends CustomPainter {
       );
 
       // Draw label
-      final textSpan = TextSpan(
-        text: val.toStringAsFixed(0),
-        style: textStyle,
-      );
+      final textSpan = TextSpan(text: val.toStringAsFixed(0), style: textStyle);
       final textPainter = TextPainter(
         text: textSpan,
         textDirection: TextDirection.ltr,
@@ -126,7 +124,8 @@ class _LineChartPainter extends CustomPainter {
 
     // Coordinates calculations
     final int pointsCount = records.length;
-    final double xSegment = chartWidth / (pointsCount > 1 ? (pointsCount - 1) : 1);
+    final double xSegment =
+        chartWidth / (pointsCount > 1 ? (pointsCount - 1) : 1);
 
     final List<Offset> points1 = [];
     final List<Offset> points2 = []; // Used for Diastolic in Tekanan Darah
@@ -216,12 +215,22 @@ class _LineChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _LineChartPainter oldDelegate) {
-    return oldDelegate.records != records || oldDelegate.metricType != metricType;
+    return oldDelegate.records != records ||
+        oldDelegate.metricType != metricType;
   }
 }
 
 class BarChartWidget extends StatelessWidget {
-  const BarChartWidget({super.key});
+  final List<String> labels;
+  final List<double> values;
+  final double maxValue;
+
+  const BarChartWidget({
+    super.key,
+    required this.labels,
+    required this.values,
+    this.maxValue = 60.0,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -230,20 +239,34 @@ class BarChartWidget extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
       child: CustomPaint(
         size: Size.infinite,
-        painter: _BarChartPainter(),
+        painter: _BarChartPainter(
+          labels: labels,
+          values: values,
+          maxValue: maxValue,
+        ),
       ),
     );
   }
 }
 
 class _BarChartPainter extends CustomPainter {
+  final List<String> labels;
+  final List<double> values;
+  final double maxValue;
+
+  _BarChartPainter({
+    required this.labels,
+    required this.values,
+    required this.maxValue,
+  });
+
   @override
   void paint(Canvas canvas, Size size) {
     final double width = size.width;
     final double height = size.height;
 
     final paintBar = Paint()
-      ..color = const Color(0xFF0F5A5C)
+      ..color = const Color(0xFF27A1A6)
       ..style = PaintingStyle.fill;
 
     final paintGrid = Paint()
@@ -264,8 +287,9 @@ class _BarChartPainter extends CustomPainter {
     final double chartWidth = width - paddingLeft - paddingRight;
     final double chartHeight = height - paddingTop - paddingBottom;
 
-    // Y Grid & labels (0, 20, 40, 60)
-    final List<int> yValues = [0, 20, 40, 60];
+    // Y Grid & labels (0, max/3, 2*max/3, max)
+    final double step = maxValue / 3;
+    final List<double> yValues = [0, step, step * 2, maxValue];
     for (int i = 0; i < yValues.length; i++) {
       final double fraction = i / (yValues.length - 1);
       final double y = paddingTop + chartHeight * (1 - fraction);
@@ -276,7 +300,10 @@ class _BarChartPainter extends CustomPainter {
         paintGrid,
       );
 
-      final textSpan = TextSpan(text: '${yValues[i]}', style: textStyle);
+      final textSpan = TextSpan(
+        text: '${yValues[i].toStringAsFixed(0)}',
+        style: textStyle,
+      );
       final textPainter = TextPainter(
         text: textSpan,
         textDirection: TextDirection.ltr,
@@ -287,25 +314,27 @@ class _BarChartPainter extends CustomPainter {
       );
     }
 
-    // Bar details
-    // Weeks: 01/05, 08/05, 15/05, 22/05, 29/05
-    final List<String> labels = ['01/05', '08/05', '15/05', '22/05', '29/05'];
-    final List<double> values = [48, 55, 58, 40, 52];
+    if (labels.isEmpty) return;
 
     final double barSpacing = chartWidth / labels.length;
-    final double barWidth = barSpacing * 0.4;
+    final double barWidth = (barSpacing * 0.4).clamp(4.0, 30.0);
 
     for (int i = 0; i < labels.length; i++) {
       final double val = values[i];
       final double xCenter = paddingLeft + (i * barSpacing) + (barSpacing / 2);
 
       // Bar rectangle
-      final double barHeightPercent = val / 60.0;
+      final double barHeightPercent = (val / maxValue).clamp(0.0, 1.0);
       final double barTop = paddingTop + chartHeight * (1 - barHeightPercent);
       final double barBottom = height - paddingBottom;
 
       final rect = RRect.fromRectAndCorners(
-        Rect.fromLTRB(xCenter - barWidth / 2, barTop, xCenter + barWidth / 2, barBottom),
+        Rect.fromLTRB(
+          xCenter - barWidth / 2,
+          barTop,
+          xCenter + barWidth / 2,
+          barBottom,
+        ),
         topLeft: const Radius.circular(4.0),
         topRight: const Radius.circular(4.0),
       );
@@ -326,5 +355,9 @@ class _BarChartPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _BarChartPainter oldDelegate) {
+    return oldDelegate.labels != labels ||
+        oldDelegate.values != values ||
+        oldDelegate.maxValue != maxValue;
+  }
 }

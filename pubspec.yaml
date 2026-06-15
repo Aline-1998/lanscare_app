@@ -31,13 +31,36 @@ dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
+  # The following adds the Cupertino icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
+  sqflite: ^2.3.0
+  path: ^1.9.0
+  image_picker: ^1.1.2
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
-  flutter_test:
+ flutter_launcher_icons: "^0.14.4"
+ flutter_test:
     sdk: flutter
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logo1.jpeg"
+  min_sdk_android: 21 # android min sdk min:16, default 21
+  web:
+    generate: true
+    image_path: "assets/logo.png"
+    background_color: "#hexcode"
+    theme_color: "#hexcode"
+  windows:
+    generate: true
+    image_path: "assets/logo.png"
+    image_size: 48 # min:48, max:256, default: 48
+  macos:
+    generate: true
+    image_path: "assets/logo.png"
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -52,10 +75,20 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
 
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
+  # The following line ensures that the Material images font is
+  # included with your application, so that you can use the images in
+  # the material images class.
   uses-material-design: true
+
+  assets:
+    - assets/logo.png
+    - assets/eren.png
+    - assets/mikasa.png
+    - assets/levi.png
+    - assets/armin.png
+    - assets/erwin.png
+    - assets/sasha.png
+    - assets/bg_gradient.png
 
   # To add assets to your application, add an assets section, like this:
   # assets:

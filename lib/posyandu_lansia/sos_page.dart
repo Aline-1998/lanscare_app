@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'data_store.dart';
 
 class SosPage extends StatefulWidget {
@@ -19,7 +20,7 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
       vsync: this,
       duration: const Duration(seconds: 1),
     )..repeat(reverse: true);
-    
+
     _pulseAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
@@ -36,12 +37,20 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Row(
             children: [
               Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
               SizedBox(width: 8),
-              Text('SOS DIKIRIM', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+              Text(
+                'SOS DIKIRIM',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ],
           ),
           content: const Text(
@@ -53,7 +62,7 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               child: const Text('OK', style: TextStyle(color: Colors.white)),
-            )
+            ),
           ],
         );
       },
@@ -71,7 +80,9 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: Text('Menghubungi $label'),
           content: Text('Apakah Anda ingin menelepon $finalNumber?'),
           actions: [
@@ -86,9 +97,14 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
                   SnackBar(content: Text('Memanggil $finalNumber...')),
                 );
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F5A5C)),
-              child: const Text('Panggil', style: TextStyle(color: Colors.white)),
-            )
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF27A1A6),
+              ),
+              child: const Text(
+                'Panggil',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
           ],
         );
       },
@@ -97,20 +113,28 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
 
   void _showEditSosDialog(BuildContext context) {
     final store = DataStore();
-    final familyController = TextEditingController(text: store.userFamilyContact);
+    final familyController = TextEditingController(
+      text: store.userFamilyContact,
+    );
     final kaderController = TextEditingController(text: store.userKaderContact);
-    final puskesmasController = TextEditingController(text: store.userPuskesmasContact);
-    final ambulanceController = TextEditingController(text: store.userAmbulanceContact);
+    final puskesmasController = TextEditingController(
+      text: store.userPuskesmasContact,
+    );
+    final ambulanceController = TextEditingController(
+      text: store.userAmbulanceContact,
+    );
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text(
             'Ubah Kontak Darurat',
             style: TextStyle(
-              color: Color(0xFF0F5A5C),
+              color: Color(0xFF27A1A6),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -164,11 +188,18 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
                 );
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Kontak darurat berhasil diperbarui')),
+                  const SnackBar(
+                    content: Text('Kontak darurat berhasil diperbarui'),
+                  ),
                 );
               },
-              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0F5A5C)),
-              child: const Text('Simpan', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF27A1A6),
+              ),
+              child: const Text(
+                'Simpan',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ],
         );
@@ -179,65 +210,72 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final store = DataStore();
+    final isDark = store.isDarkMode;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFFFECEB), // Soft light red background matching SOS theme
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF0F5A5C)),
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF27A1A6)),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Darurat (SOS)',
           style: TextStyle(
-            color: Color(0xFF0F5A5C),
+            color: Color(0xFF27A1A6),
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit, color: Color(0xFF0F5A5C)),
+            icon: const Icon(Icons.edit, color: Color(0xFF27A1A6)),
             tooltip: 'Ubah Kontak SOS',
             onPressed: () => _showEditSosDialog(context),
           ),
         ],
       ),
-      body: SafeArea(
-        child: AnimatedBuilder(
-          animation: store,
-          builder: (context, child) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const SizedBox(height: 10),
-                  const Text(
-                    'Butuh Bantuan Darurat?',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.redAccent,
+      body: Container(
+        decoration: AppTheme.getBgDecoration(context),
+        height: double.infinity,
+        width: double.infinity,
+        child: SafeArea(
+          child: AnimatedBuilder(
+            animation: store,
+            builder: (context, child) {
+              return SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24.0,
+                  vertical: 20.0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const SizedBox(height: 10),
+                    const Text(
+                      'Butuh Bantuan Darurat?',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.redAccent,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tekan tombol SOS jika Anda membutuhkan bantuan segera.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[700],
-                      height: 1.4,
+                    const SizedBox(height: 8),
+                    Text(
+                      'Tekan tombol SOS jika Anda membutuhkan bantuan segera.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.getTextColor(context).withOpacity(0.8),
+                        height: 1.4,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 40),
-                  
-                  // Pulsing SOS Button
-                  Expanded(
-                    child: Center(
+                    const SizedBox(height: 30),
+
+                    // Pulsing SOS Button
+                    Center(
                       child: ScaleTransition(
                         scale: _pulseAnimation,
                         child: GestureDetector(
@@ -253,14 +291,18 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
                                   color: Colors.red.withOpacity(0.4),
                                   blurRadius: 18,
                                   spreadRadius: 6,
-                                )
+                                ),
                               ],
                             ),
                             alignment: Alignment.center,
                             child: const Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.ring_volume, color: Colors.white, size: 50),
+                                Icon(
+                                  Icons.ring_volume,
+                                  color: Colors.white,
+                                  size: 50,
+                                ),
                                 SizedBox(height: 8),
                                 Text(
                                   'SOS\nDarurat',
@@ -271,97 +313,124 @@ class _SosPageState extends State<SosPage> with SingleTickerProviderStateMixin {
                                     fontSize: 22,
                                     height: 1.1,
                                   ),
-                                )
+                                ),
                               ],
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
+                    const SizedBox(height: 30),
 
-                  // Hubungi Cepat List
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      'Hubungi Cepat',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey[800],
+                    // Hubungi Cepat List
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Hubungi Cepat',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.getTextColor(context),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 12),
+                    const SizedBox(height: 12),
 
-                  _buildContactItem('Keluarga', store.userFamilyContact, Colors.indigo),
-                  const SizedBox(height: 10),
-                  _buildContactItem('Kader Posyandu', store.userKaderContact, const Color(0xFF0F5A5C)),
-                  const SizedBox(height: 10),
-                  _buildContactItem('Puskesmas Terdekat', store.userPuskesmasContact, Colors.teal),
-                  const SizedBox(height: 10),
-                  _buildContactItem('Ambulans', store.userAmbulanceContact, Colors.red),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            );
-          },
+                    _buildContactItem(
+                      'Keluarga',
+                      store.userFamilyContact,
+                      Colors.indigo,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildContactItem(
+                      'Kader Posyandu',
+                      store.userKaderContact,
+                      const Color(0xFF27A1A6),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildContactItem(
+                      'Puskesmas Terdekat',
+                      store.userPuskesmasContact,
+                      Colors.teal,
+                    ),
+                    const SizedBox(height: 10),
+                    _buildContactItem(
+                      'Ambulans',
+                      store.userAmbulanceContact,
+                      Colors.red,
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
   }
 
   Widget _buildContactItem(String label, String number, Color color) {
+    final isDark = DataStore().isDarkMode;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.getCardColor(context),
         borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Colors.grey.withOpacity(0.3)),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  shape: BoxShape.circle,
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: color.withOpacity(isDark ? 0.2 : 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(Icons.phone, color: color, size: 18),
                 ),
-                child: Icon(Icons.phone, color: color, size: 18),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: Colors.black87,
-                    ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        label,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppTheme.getTextColor(context),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        number,
+                        style: TextStyle(
+                          color: AppTheme.getTextColor(
+                            context,
+                          ).withOpacity(0.6),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    number,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              )
-            ],
+                ),
+              ],
+            ),
           ),
           IconButton(
             onPressed: () => _callNumber(label, number),
-            icon: const Icon(Icons.phone_forwarded, color: Colors.green, size: 20),
-          )
+            icon: const Icon(
+              Icons.phone_forwarded,
+              color: Colors.green,
+              size: 20,
+            ),
+          ),
         ],
       ),
     );
